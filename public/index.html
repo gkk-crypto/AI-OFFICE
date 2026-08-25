@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI OFFICE</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6fb;
+      color: #172033;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 25px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 25px;
+    }
+
+    .hero {
+      background: white;
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.06);
+    }
+
+    .hero h2 {
+      margin-top: 0;
+      font-size: 30px;
+    }
+
+    .hero p {
+      color: #64748b;
+      line-height: 1.8;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 22px;
+      box-shadow: 0 5px 18px rgba(0,0,0,.05);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #475569;
+      font-size: 16px;
+    }
+
+    .number {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .form {
+      background: white;
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.06);
+    }
+
+    .form h2 {
+      margin-top: 0;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 13px;
+      margin: 8px 0 15px;
+      border: 1px solid #dbe2ea;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      padding: 13px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      white-space: pre-wrap;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #64748b;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>AI OFFICE</h1>
+  <p>نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي</p>
+</header>
+
+<div class="container">
+
+  <section class="hero">
+    <h2>مرحبًا بك في AI OFFICE 🚀</h2>
+    <p>
+      مكتبك الرقمي لإدارة الطلبات والخدمات والعمليات باستخدام
+      الذكاء الاصطناعي، مع متابعة الجودة والمراجعة والتسليم.
+    </p>
+  </section>
+
+  <section class="stats">
+
+    <div class="card">
+      <h3>إجمالي الطلبات</h3>
+      <div class="number" id="orders">0</div>
+    </div>
+
+    <div class="card">
+      <h3>الإيرادات</h3>
+      <div class="number" id="revenue">0 ريال</div>
+    </div>
+
+    <div class="card">
+      <h3>الطلبات المدفوعة</h3>
+      <div class="number" id="paid">0</div>
+    </div>
+
+    <div class="card">
+      <h3>تم التسليم</h3>
+      <div class="number" id="delivered">0</div>
+    </div>
+
+    <div class="card">
+      <h3>متوسط الجودة</h3>
+      <div class="number" id="quality">0%</div>
+    </div>
+
+  </section>
+
+  <section class="form">
+
+    <h2>إنشاء طلب جديد</h2>
+
+    <form id="orderForm">
+
+      <label>اسم العميل</label>
+      <input
+        type="text"
+        id="customerName"
+        placeholder="اكتب اسم العميل"
+        required
+      >
+
+      <label>البريد الإلكتروني</label>
+      <input
+        type="email"
+        id="customerEmail"
+        placeholder="example@email.com"
+      >
+
+      <label>الخدمة</label>
+      <select id="service" required>
+        <option value="">اختر الخدمة</option>
+        <option value="إعداد تقرير">إعداد تقرير</option>
+        <option value="تحليل بيانات">تحليل بيانات</option>
+        <option value="خطاب رسمي">خطاب رسمي</option>
+        <option value="خدمة إدارية">خدمة إدارية</option>
+        <option value="خدمة ذكاء اصطناعي">خدمة ذكاء اصطناعي</option>
+      </select>
+
+      <label>السعر</label>
+      <input
+        type="number"
+        id="price"
+        placeholder="السعر بالريال"
+        min="0"
+      >
+
+      <label>وصف الطلب</label>
+      <textarea
+        id="description"
+        placeholder="اكتب تفاصيل طلب العميل"
+      ></textarea>
+
+      <button type="submit">
+        إنشاء الطلب
+      </button>
+
+    </form>
+
+    <div id="result">جاهز لاستقبال الطلبات...</div>
+
+  </section>
+
+</div>
+
+<footer>
+  AI OFFICE © 2026 — نظام إدارة الأعمال بالذكاء الاصطناعي
+</footer>
+
+<script>
+
+async function loadDashboard() {
+
+  try {
+
+    const response = await fetch("/api/dashboard");
+
+    const data = await response.json();
+
+    document.getElementById("orders").textContent =
+      data.orders || 0;
+
+    document.getElementById("revenue").textContent =
+      (data.revenue || 0) + " ريال";
+
+    document.getElementById("paid").textContent =
+      data.paid || 0;
+
+    document.getElementById("delivered").textContent =
+      data.delivered || 0;
+
+    document.getElementById("quality").textContent =
+      (data.avgQuality || 0) + "%";
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+
+}
+
+document
+  .getElementById("orderForm")
+  .addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const result =
+      document.getElementById("result");
+
+    result.textContent = "جاري إنشاء الطلب...";
+
+    const order = {
+
+      customerName:
+        document.getElementById("customerName").value,
+
+      customerEmail:
+        document.getElementById("customer
