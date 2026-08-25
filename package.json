@@ -1,1 +1,13 @@
-Add package.json
+{
+  "name": "ai-office",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "multer": "^2.0.2"
+  }
+}
