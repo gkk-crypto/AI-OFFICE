@@ -43,10 +43,6 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
   });
 });
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`AI OFFICE running on port ${PORT}`);
 });
