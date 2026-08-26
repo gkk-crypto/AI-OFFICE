@@ -7,28 +7,28 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ==========================================
-// إعدادات أساسية
-// ==========================================
+// =====================================================
+// AI OFFICE - SERVER
+// =====================================================
+
+// -------------------------
+// الإعدادات الأساسية
+// -------------------------
 
 app.use(cors());
 
-app.use(
-  express.json({
-    limit: "10mb"
-  })
-);
+app.use(express.json({
+  limit: "10mb"
+}));
 
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb"
-  })
-);
+app.use(express.urlencoded({
+  extended: true,
+  limit: "10mb"
+}));
 
-// ==========================================
-// مجلد رفع الملفات
-// ==========================================
+// -------------------------
+// رفع الملفات
+// -------------------------
 
 const uploadDir = "/tmp/ai-office-uploads";
 
@@ -41,13 +41,13 @@ if (!fs.existsSync(uploadDir)) {
 const upload = multer({
   dest: uploadDir,
   limits: {
-    fileSize: 10 * 1024 * 1024
+    fileSize: 20 * 1024 * 1024
   }
 });
 
-// ==========================================
+// -------------------------
 // قاعدة البيانات البسيطة
-// ==========================================
+// -------------------------
 
 const dataDir = path.join(
   __dirname,
@@ -73,12 +73,14 @@ if (!fs.existsSync(ordersFile)) {
   );
 }
 
-// ==========================================
-// قراءة الطلبات
-// ==========================================
+// =====================================================
+// وظائف قاعدة البيانات
+// =====================================================
 
 function getOrders() {
+
   try {
+
     const data = fs.readFileSync(
       ordersFile,
       "utf8"
@@ -89,59 +91,39 @@ function getOrders() {
     return Array.isArray(orders)
       ? orders
       : [];
+
   } catch (error) {
+
     console.error(
       "Error reading orders:",
       error
     );
 
     return [];
+
   }
+
 }
 
-// ==========================================
-// حفظ الطلبات
-// ==========================================
 
 function saveOrders(orders) {
-  try {
-    fs.writeFileSync(
-      ordersFile,
-      JSON.stringify(
-        orders,
-        null,
-        2
-      ),
-      "utf8"
-    );
 
-    return true;
-  } catch (error) {
-    console.error(
-      "Error saving orders:",
-      error
-    );
+  fs.writeFileSync(
+    ordersFile,
+    JSON.stringify(
+      orders,
+      null,
+      2
+    ),
+    "utf8"
+  );
 
-    return false;
-  }
 }
 
-// ==========================================
-// تنظيف النصوص
-// ==========================================
 
-function cleanText(value) {
-  return String(
-    value === undefined ||
-    value === null
-      ? ""
-      : value
-  ).trim();
-}
-
-// ==========================================
+// =====================================================
 // تشغيل ملفات الموقع
-// ==========================================
+// =====================================================
 
 app.use(
   express.static(
@@ -152,564 +134,1031 @@ app.use(
   )
 );
 
-// ==========================================
-// فحص حالة النظام
-// ==========================================
+
+// =====================================================
+// Health Check
+// =====================================================
 
 app.get(
   "/api/health",
   (req, res) => {
+
     res.json({
+
       success: true,
+
       status: "online",
+
       service: "AI OFFICE",
-      message: "AI OFFICE is running",
-      time: new Date().toISOString()
+
+      message:
+        "AI OFFICE is running",
+
+      time:
+        new Date().toISOString()
+
     });
+
   }
 );
 
-// ==========================================
+
+// =====================================================
 // لوحة الإحصائيات
-// ==========================================
+// =====================================================
 
 app.get(
   "/api/dashboard",
   (req, res) => {
-    try {
-      const orders = getOrders();
 
-      const revenue = orders.reduce(
+    const orders = getOrders();
+
+    const revenue =
+      orders.reduce(
         (total, order) => {
-          return (
-            total +
-            Number(order.price || 0)
-          );
+
+          return total +
+            Number(
+              order.price || 0
+            );
+
         },
         0
       );
 
-      const paidOrders =
-        orders.filter(
-          order =>
-            order.paymentStatus === "paid"
-        ).length;
 
-      const deliveredOrders =
-        orders.filter(
-          order =>
-            order.status === "delivered" ||
-            order.status === "completed"
-        ).length;
+    const paidOrders =
+      orders.filter(
+        order =>
+          order.paymentStatus === "paid"
+      ).length;
 
-      const qualityOrders =
-        orders.filter(
-          order =>
-            order.quality !== undefined &&
-            order.quality !== null &&
-            Number(order.quality) > 0
-        );
 
-      const averageQuality =
-        qualityOrders.length > 0
-          ? Math.round(
-              qualityOrders.reduce(
-                (sum, order) => {
-                  return (
-                    sum +
-                    Number(
-                      order.quality || 0
-                    )
-                  );
-                },
-                0
-              ) /
-                qualityOrders.length
-            )
-          : 0;
+    const deliveredOrders =
+      orders.filter(
+        order =>
+          order.status === "delivered" ||
+          order.status === "completed"
+      ).length;
 
-      res.json({
-        success: true,
-        totalOrders: orders.length,
-        revenue: revenue,
-        paidOrders: paidOrders,
-        deliveredOrders: deliveredOrders,
-        averageQuality: averageQuality
-      });
-    } catch (error) {
-      console.error(
-        "Dashboard error:",
-        error
+
+    const processingOrders =
+      orders.filter(
+        order =>
+          order.status === "processing"
+      ).length;
+
+
+    const newOrders =
+      orders.filter(
+        order =>
+          order.status === "new"
+      ).length;
+
+
+    const reviewOrders =
+      orders.filter(
+        order =>
+          order.status === "review"
+      ).length;
+
+
+    const qualityOrders =
+      orders.filter(
+        order =>
+          order.quality !== undefined &&
+          order.quality !== null &&
+          Number(order.quality) > 0
       );
 
-      res.status(500).json({
-        success: false,
-        message:
-          "حدث خطأ أثناء تحميل لوحة الإحصائيات"
-      });
-    }
+
+    const averageQuality =
+      qualityOrders.length > 0
+        ? Math.round(
+
+            qualityOrders.reduce(
+              (sum, order) => {
+
+                return sum +
+                  Number(
+                    order.quality || 0
+                  );
+
+              },
+              0
+            ) /
+            qualityOrders.length
+
+          )
+        : 0;
+
+
+    res.json({
+
+      success: true,
+
+      totalOrders:
+        orders.length,
+
+      revenue:
+        revenue,
+
+      paidOrders:
+        paidOrders,
+
+      deliveredOrders:
+        deliveredOrders,
+
+      processingOrders:
+        processingOrders,
+
+      newOrders:
+        newOrders,
+
+      reviewOrders:
+        reviewOrders,
+
+      averageQuality:
+        averageQuality
+
+    });
+
   }
 );
 
-// ==========================================
-// جلب جميع الطلبات
-// ==========================================
+
+// =====================================================
+// جلب الطلبات
+// =====================================================
 
 app.get(
   "/api/orders",
   (req, res) => {
-    try {
-      const orders = getOrders();
 
-      res.json({
-        success: true,
-        orders: orders
-      });
-    } catch (error) {
-      console.error(
-        "Orders error:",
-        error
-      );
+    let orders = getOrders();
 
-      res.status(500).json({
-        success: false,
-        message:
-          "تعذر تحميل الطلبات"
-      });
+
+    // البحث
+    const search =
+      String(
+        req.query.search || ""
+      )
+      .trim()
+      .toLowerCase();
+
+
+    // فلترة الحالة
+    const status =
+      String(
+        req.query.status || ""
+      )
+      .trim();
+
+
+    // فلترة الدفع
+    const paymentStatus =
+      String(
+        req.query.paymentStatus || ""
+      )
+      .trim();
+
+
+    if (search) {
+
+      orders =
+        orders.filter(
+          order => {
+
+            const text =
+              [
+                order.id,
+                order.customerName,
+                order.customerEmail,
+                order.service,
+                order.description
+              ]
+              .join(" ")
+              .toLowerCase();
+
+            return text.includes(search);
+
+          }
+        );
+
     }
+
+
+    if (status) {
+
+      orders =
+        orders.filter(
+          order =>
+            order.status === status
+        );
+
+    }
+
+
+    if (paymentStatus) {
+
+      orders =
+        orders.filter(
+          order =>
+            order.paymentStatus ===
+            paymentStatus
+        );
+
+    }
+
+
+    res.json({
+
+      success: true,
+
+      count:
+        orders.length,
+
+      orders:
+        orders
+
+    });
+
   }
 );
 
-// ==========================================
+
+// =====================================================
 // جلب طلب واحد
-// ==========================================
+// =====================================================
 
 app.get(
   "/api/orders/:id",
   (req, res) => {
+
     const orders = getOrders();
 
-    const order = orders.find(
-      item =>
-        String(item.id) ===
-        String(req.params.id)
-    );
+    const order =
+      orders.find(
+        item =>
+          String(item.id) ===
+          String(req.params.id)
+      );
+
 
     if (!order) {
+
       return res.status(404).json({
+
         success: false,
+
         message:
           "الطلب غير موجود"
+
       });
+
     }
 
+
     res.json({
+
       success: true,
-      order: order
+
+      order:
+        order
+
     });
+
   }
 );
 
-// ==========================================
+
+// =====================================================
 // إنشاء طلب جديد
-// ==========================================
+// =====================================================
 
 app.post(
   "/api/orders",
   (req, res) => {
-    try {
-      const customerName =
-        cleanText(
-          req.body.customerName
-        );
 
-      const customerEmail =
-        cleanText(
-          req.body.customerEmail
-        );
+    const {
+      customerName,
+      customerEmail,
+      service,
+      price,
+      description
+    } = req.body;
 
-      const service =
-        cleanText(
-          req.body.service
-        );
 
-      const description =
-        cleanText(
-          req.body.description
-        );
+    if (
+      !customerName ||
+      !customerEmail ||
+      !service
+    ) {
 
-      const price =
-        Number(
-          req.body.price || 0
-        );
+      return res.status(400).json({
 
-      if (
-        !customerName ||
-        !customerEmail ||
-        !service
-      ) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "يرجى تعبئة اسم العميل والبريد الإلكتروني والخدمة"
-        });
-      }
-
-      if (
-        Number.isNaN(price) ||
-        price < 0
-      ) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "السعر غير صحيح"
-        });
-      }
-
-      const orders = getOrders();
-
-      const now =
-        new Date().toISOString();
-
-      const newOrder = {
-        id:
-          Date.now().toString(),
-
-        customerName:
-          customerName,
-
-        customerEmail:
-          customerEmail,
-
-        service:
-          service,
-
-        price:
-          price,
-
-        description:
-          description,
-
-        status:
-          "new",
-
-        paymentStatus:
-          "unpaid",
-
-        quality:
-          0,
-
-        createdAt:
-          now,
-
-        updatedAt:
-          now
-      };
-
-      orders.push(newOrder);
-
-      const saved =
-        saveOrders(orders);
-
-      if (!saved) {
-        return res.status(500).json({
-          success: false,
-          message:
-            "تعذر حفظ الطلب"
-        });
-      }
-
-      res.status(201).json({
-        success: true,
-        message:
-          "تم إنشاء الطلب بنجاح",
-        order:
-          newOrder
-      });
-    } catch (error) {
-      console.error(
-        "Create order error:",
-        error
-      );
-
-      res.status(500).json({
         success: false,
+
         message:
-          "حدث خطأ أثناء إنشاء الطلب"
+          "يرجى تعبئة بيانات العميل والخدمة"
+
       });
+
     }
+
+
+    const orders =
+      getOrders();
+
+
+    const now =
+      new Date().toISOString();
+
+
+    const newOrder = {
+
+      id:
+        Date.now().toString(),
+
+      customerName:
+        String(
+          customerName
+        ).trim(),
+
+      customerEmail:
+        String(
+          customerEmail
+        ).trim(),
+
+      service:
+        String(
+          service
+        ).trim(),
+
+      price:
+        Number(
+          price || 0
+        ),
+
+      description:
+        String(
+          description || ""
+        ).trim(),
+
+      status:
+        "new",
+
+      paymentStatus:
+        "unpaid",
+
+      quality:
+        0,
+
+      createdAt:
+        now,
+
+      updatedAt:
+        now
+
+    };
+
+
+    orders.push(
+      newOrder
+    );
+
+
+    saveOrders(
+      orders
+    );
+
+
+    res.status(201).json({
+
+      success: true,
+
+      message:
+        "تم إنشاء الطلب بنجاح",
+
+      order:
+        newOrder
+
+    });
+
   }
 );
 
-// ==========================================
+
+// =====================================================
 // تحديث طلب
-// ==========================================
+// =====================================================
 
 app.put(
   "/api/orders/:id",
   (req, res) => {
-    try {
-      const orders = getOrders();
 
-      const index =
-        orders.findIndex(
-          order =>
-            String(order.id) ===
-            String(req.params.id)
-        );
+    const orders =
+      getOrders();
 
-      if (index === -1) {
-        return res.status(404).json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
-      }
 
-      const allowedFields = [
-        "status",
-        "paymentStatus",
-        "quality",
-        "description"
+    const index =
+      orders.findIndex(
+        order =>
+          String(order.id) ===
+          String(req.params.id)
+      );
+
+
+    if (index === -1) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
+    }
+
+
+    // -------------------------
+    // الحالة
+    // -------------------------
+
+    if (
+      req.body.status !== undefined
+    ) {
+
+      const allowedStatuses = [
+
+        "new",
+
+        "processing",
+
+        "review",
+
+        "delivered",
+
+        "completed",
+
+        "cancelled"
+
       ];
 
-      allowedFields.forEach(
-        field => {
-          if (
-            req.body[field] !==
-            undefined
-          ) {
-            if (
-              field === "quality"
-            ) {
-              let quality =
-                Number(
-                  req.body[field]
-                );
 
-              if (
-                Number.isNaN(
-                  quality
-                )
-              ) {
-                quality = 0;
-              }
+      if (
+        allowedStatuses.includes(
+          req.body.status
+        )
+      ) {
 
-              quality =
-                Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    quality
-                  )
-                );
+        orders[index].status =
+          req.body.status;
 
-              orders[index].quality =
-                quality;
-            } else {
-              orders[index][field] =
-                cleanText(
-                  req.body[field]
-                );
-            }
-          }
-        }
-      );
-
-      orders[index].updatedAt =
-        new Date().toISOString();
-
-      const saved =
-        saveOrders(orders);
-
-      if (!saved) {
-        return res.status(500).json({
-          success: false,
-          message:
-            "تعذر حفظ التحديث"
-        });
       }
 
-      res.json({
-        success: true,
-        message:
-          "تم تحديث الطلب بنجاح",
-        order:
-          orders[index]
-      });
-    } catch (error) {
-      console.error(
-        "Update order error:",
-        error
-      );
-
-      res.status(500).json({
-        success: false,
-        message:
-          "حدث خطأ أثناء تحديث الطلب"
-      });
     }
+
+
+    // -------------------------
+    // حالة الدفع
+    // -------------------------
+
+    if (
+      req.body.paymentStatus !==
+      undefined
+    ) {
+
+      const allowedPayments = [
+
+        "unpaid",
+
+        "paid",
+
+        "refunded",
+
+        "pending"
+
+      ];
+
+
+      if (
+        allowedPayments.includes(
+          req.body.paymentStatus
+        )
+      ) {
+
+        orders[index].paymentStatus =
+          req.body.paymentStatus;
+
+      }
+
+    }
+
+
+    // -------------------------
+    // الجودة
+    // -------------------------
+
+    if (
+      req.body.quality !== undefined
+    ) {
+
+      let quality =
+        Number(
+          req.body.quality
+        );
+
+
+      if (
+        Number.isNaN(quality)
+      ) {
+
+        quality = 0;
+
+      }
+
+
+      quality =
+        Math.max(
+          0,
+          Math.min(
+            100,
+            quality
+          )
+        );
+
+
+      orders[index].quality =
+        quality;
+
+    }
+
+
+    // -------------------------
+    // الوصف
+    // -------------------------
+
+    if (
+      req.body.description !==
+      undefined
+    ) {
+
+      orders[index].description =
+        String(
+          req.body.description
+        ).trim();
+
+    }
+
+
+    orders[index].updatedAt =
+      new Date().toISOString();
+
+
+    saveOrders(
+      orders
+    );
+
+
+    res.json({
+
+      success: true,
+
+      message:
+        "تم تحديث الطلب بنجاح",
+
+      order:
+        orders[index]
+
+    });
+
   }
 );
 
-// ==========================================
+
+// =====================================================
+// تغيير حالة الطلب بسرعة
+// =====================================================
+
+app.patch(
+  "/api/orders/:id/status",
+  (req, res) => {
+
+    const {
+      status
+    } = req.body;
+
+
+    const allowedStatuses = [
+
+      "new",
+
+      "processing",
+
+      "review",
+
+      "delivered",
+
+      "completed",
+
+      "cancelled"
+
+    ];
+
+
+    if (
+      !allowedStatuses.includes(
+        status
+      )
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "حالة الطلب غير صحيحة"
+
+      });
+
+    }
+
+
+    const orders =
+      getOrders();
+
+
+    const index =
+      orders.findIndex(
+        order =>
+          String(order.id) ===
+          String(req.params.id)
+      );
+
+
+    if (index === -1) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
+    }
+
+
+    orders[index].status =
+      status;
+
+
+    orders[index].updatedAt =
+      new Date().toISOString();
+
+
+    saveOrders(
+      orders
+    );
+
+
+    res.json({
+
+      success: true,
+
+      message:
+        "تم تغيير حالة الطلب",
+
+      order:
+        orders[index]
+
+    });
+
+  }
+);
+
+
+// =====================================================
+// تغيير حالة الدفع
+// =====================================================
+
+app.patch(
+  "/api/orders/:id/payment",
+  (req, res) => {
+
+    const {
+      paymentStatus
+    } = req.body;
+
+
+    const allowedPayments = [
+
+      "unpaid",
+
+      "paid",
+
+      "pending",
+
+      "refunded"
+
+    ];
+
+
+    if (
+      !allowedPayments.includes(
+        paymentStatus
+      )
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "حالة الدفع غير صحيحة"
+
+      });
+
+    }
+
+
+    const orders =
+      getOrders();
+
+
+    const index =
+      orders.findIndex(
+        order =>
+          String(order.id) ===
+          String(req.params.id)
+      );
+
+
+    if (index === -1) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
+    }
+
+
+    orders[index].paymentStatus =
+      paymentStatus;
+
+
+    orders[index].updatedAt =
+      new Date().toISOString();
+
+
+    saveOrders(
+      orders
+    );
+
+
+    res.json({
+
+      success: true,
+
+      message:
+        "تم تحديث حالة الدفع",
+
+      order:
+        orders[index]
+
+    });
+
+  }
+);
+
+
+// =====================================================
+// تحديث الجودة
+// =====================================================
+
+app.patch(
+  "/api/orders/:id/quality",
+  (req, res) => {
+
+    let quality =
+      Number(
+        req.body.quality
+      );
+
+
+    if (
+      Number.isNaN(quality)
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "قيمة الجودة غير صحيحة"
+
+      });
+
+    }
+
+
+    quality =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          quality
+        )
+      );
+
+
+    const orders =
+      getOrders();
+
+
+    const index =
+      orders.findIndex(
+        order =>
+          String(order.id) ===
+          String(req.params.id)
+      );
+
+
+    if (index === -1) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
+    }
+
+
+    orders[index].quality =
+      quality;
+
+
+    orders[index].updatedAt =
+      new Date().toISOString();
+
+
+    saveOrders(
+      orders
+    );
+
+
+    res.json({
+
+      success: true,
+
+      message:
+        "تم تحديث جودة الطلب",
+
+      order:
+        orders[index]
+
+    });
+
+  }
+);
+
+
+// =====================================================
 // حذف طلب
-// ==========================================
+// =====================================================
 
 app.delete(
   "/api/orders/:id",
   (req, res) => {
-    try {
-      const orders = getOrders();
 
-      const index =
-        orders.findIndex(
-          order =>
-            String(order.id) ===
-            String(req.params.id)
-        );
+    const orders =
+      getOrders();
 
-      if (index === -1) {
-        return res.status(404).json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
-      }
 
-      const deletedOrder =
-        orders.splice(
-          index,
-          1
-        )[0];
-
-      const saved =
-        saveOrders(orders);
-
-      if (!saved) {
-        return res.status(500).json({
-          success: false,
-          message:
-            "تعذر حذف الطلب"
-        });
-      }
-
-      res.json({
-        success: true,
-        message:
-          "تم حذف الطلب بنجاح",
-        order:
-          deletedOrder
-      });
-    } catch (error) {
-      console.error(
-        "Delete order error:",
-        error
+    const index =
+      orders.findIndex(
+        order =>
+          String(order.id) ===
+          String(req.params.id)
       );
 
-      res.status(500).json({
+
+    if (index === -1) {
+
+      return res.status(404).json({
+
         success: false,
+
         message:
-          "حدث خطأ أثناء حذف الطلب"
+          "الطلب غير موجود"
+
       });
+
     }
+
+
+    const deletedOrder =
+      orders.splice(
+        index,
+        1
+      )[0];
+
+
+    saveOrders(
+      orders
+    );
+
+
+    res.json({
+
+      success: true,
+
+      message:
+        "تم حذف الطلب بنجاح",
+
+      order:
+        deletedOrder
+
+    });
+
   }
 );
 
-// ==========================================
+
+// =====================================================
 // رفع ملف
-// ==========================================
+// =====================================================
 
 app.post(
   "/api/upload",
   upload.single("file"),
   (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "لم يتم رفع ملف"
-        });
+
+    if (!req.file) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "لم يتم رفع ملف"
+
+      });
+
+    }
+
+
+    res.json({
+
+      success: true,
+
+      message:
+        "تم استلام الملف بنجاح",
+
+      file: {
+
+        originalName:
+          req.file.originalname,
+
+        filename:
+          req.file.filename,
+
+        size:
+          req.file.size,
+
+        type:
+          req.file.mimetype
+
       }
 
-      res.json({
-        success: true,
-        message:
-          "تم استلام الملف بنجاح",
-        file: {
-          originalName:
-            req.file.originalname,
-          filename:
-            req.file.filename,
-          size:
-            req.file.size,
-          type:
-            req.file.mimetype
-        }
-      });
-    } catch (error) {
-      console.error(
-        "Upload error:",
-        error
-      );
+    });
 
-      res.status(500).json({
-        success: false,
-        message:
-          "حدث خطأ أثناء رفع الملف"
-      });
-    }
   }
 );
 
-// ==========================================
-// معالجة أخطاء رفع الملفات
-// ==========================================
 
-app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
-    if (
-      error instanceof
-      multer.MulterError
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "حجم الملف كبير أو حدث خطأ في الرفع"
-      });
-    }
-
-    if (error) {
-      console.error(
-        "Server error:",
-        error
-      );
-
-      return res.status(500).json({
-        success: false,
-        message:
-          "حدث خطأ في الخادم"
-      });
-    }
-
-    next();
-  }
-);
-
-// ==========================================
+// =====================================================
 // الصفحة الرئيسية
-// متوافق مع Express 5
-// ==========================================
+// Express 5
+// =====================================================
 
 app.get(
   "/{*splat}",
   (req, res) => {
+
     res.sendFile(
       path.join(
         __dirname,
@@ -717,19 +1166,23 @@ app.get(
         "index.html"
       )
     );
+
   }
 );
 
-// ==========================================
+
+// =====================================================
 // تشغيل الخادم
-// ==========================================
+// =====================================================
 
 app.listen(
   PORT,
   "0.0.0.0",
   () => {
+
     console.log(
       `AI OFFICE running on port ${PORT}`
     );
+
   }
 );
