@@ -1,664 +1,220 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>AI OFFICE</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6fb;
-      color: #172033;
-    }
-
-    header {
-      background: #111827;
-      color: white;
-      padding: 25px;
-    }
-
-    header h1 {
-      margin: 0 0 8px;
-      font-size: 30px;
-    }
-
-    header p {
-      margin: 0;
-      color: #cbd5e1;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 25px;
-    }
-
-    .hero {
-      background: white;
-      border-radius: 18px;
-      padding: 30px;
-      margin-bottom: 25px;
-      box-shadow: 0 5px 20px rgba(0,0,0,.06);
-    }
-
-    .hero h2 {
-      margin-top: 0;
-      font-size: 30px;
-    }
-
-    .hero p {
-      color: #64748b;
-      line-height: 1.8;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 22px;
-      box-shadow: 0 5px 18px rgba(0,0,0,.05);
-    }
-
-    .card h3 {
-      margin: 0 0 12px;
-      color: #64748b;
-      font-size: 16px;
-    }
-
-    .number {
-      font-size: 30px;
-      font-weight: bold;
-    }
-
-    .section {
-      background: white;
-      border-radius: 18px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 5px 20px rgba(0,0,0,.06);
-    }
-
-    .section h2 {
-      margin-top: 0;
-    }
-
-    form {
-      display: grid;
-      gap: 15px;
-    }
-
-    label {
-      font-weight: bold;
-      margin-bottom: -8px;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #dbe2ea;
-      border-radius: 10px;
-      font-size: 16px;
-      background: white;
-    }
-
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    button {
-      border: 0;
-      border-radius: 10px;
-      padding: 15px 20px;
-      background: #111827;
-      color: white;
-      font-size: 17px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: .9;
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-    #result {
-      padding: 15px;
-      border-radius: 10px;
-      background: #f1f5f9;
-      min-height: 50px;
-      margin-top: 15px;
-      white-space: pre-wrap;
-    }
-
-    .orders {
-      display: grid;
-      gap: 12px;
-    }
-
-    .order {
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 18px;
-    }
-
-    .order strong {
-      display: inline-block;
-      margin-bottom: 8px;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 20px;
-      background: #e2e8f0;
-      margin-top: 8px;
-      font-size: 13px;
-    }
-
-    .empty {
-      color: #64748b;
-      padding: 15px 0;
-    }
-
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: #64748b;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 15px;
-      }
-
-      .hero,
-      .section {
-        padding: 20px;
-      }
-
-      header {
-        padding: 20px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI OFFICE</title>
+<style>
+body{margin:0;font-family:Arial;background:#f4f6fb;color:#172033}
+header{background:#111827;color:white;padding:25px}
+main{max-width:1100px;margin:auto;padding:20px}
+section{background:white;padding:20px;margin-bottom:20px;border-radius:15px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px}
+.card{background:#f8fafc;padding:15px;border-radius:10px}
+input,select,textarea{width:100%;padding:12px;margin:6px 0 15px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
+textarea{min-height:100px}
+button{width:100%;padding:14px;background:#111827;color:white;border:0;border-radius:8px;font-size:16px}
+#result{margin-top:15px;padding:12px;background:#f1f5f9;border-radius:8px}
+.order{border:1px solid #ddd;padding:12px;margin:10px 0;border-radius:10px}
+footer{text-align:center;padding:25px;color:#64748b}
+</style>
 </head>
 
 <body>
 
 <header>
-  <h1>AI OFFICE 🚀</h1>
-  <p>نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي</p>
+<h1>AI OFFICE 🚀</h1>
+<p>نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي</p>
 </header>
 
-<main class="container">
+<main>
 
-  <section class="hero">
-    <h2>مرحبًا بك في AI OFFICE 🚀</h2>
+<section>
+<h2>مرحبًا بك في AI OFFICE</h2>
+<p>مكتبك الرقمي لإدارة الطلبات والخدمات والعمليات باستخدام الذكاء الاصطناعي.</p>
+</section>
 
-    <p>
-      مكتبك الرقمي لإدارة الطلبات والخدمات والعمليات باستخدام
-      الذكاء الاصطناعي، مع متابعة الجودة والمراجعة والتسليم.
-    </p>
-  </section>
+<section class="stats">
 
-  <!-- الإحصائيات -->
+<div class="card">
+<b>إجمالي الطلبات</b>
+<h2 id="totalOrders">0</h2>
+</div>
 
-  <section class="stats">
+<div class="card">
+<b>الإيرادات</b>
+<h2 id="revenue">0 ريال</h2>
+</div>
 
-    <div class="card">
-      <h3>إجمالي الطلبات</h3>
-      <div class="number" id="totalOrders">0</div>
-    </div>
+<div class="card">
+<b>الطلبات المدفوعة</b>
+<h2 id="paidOrders">0</h2>
+</div>
 
-    <div class="card">
-      <h3>الإيرادات</h3>
-      <div class="number" id="revenue">0 ريال</div>
-    </div>
+<div class="card">
+<b>تم التسليم</b>
+<h2 id="deliveredOrders">0</h2>
+</div>
 
-    <div class="card">
-      <h3>الطلبات المدفوعة</h3>
-      <div class="number" id="paidOrders">0</div>
-    </div>
+<div class="card">
+<b>متوسط الجودة</b>
+<h2 id="averageQuality">0%</h2>
+</div>
 
-    <div class="card">
-      <h3>تم التسليم</h3>
-      <div class="number" id="deliveredOrders">0</div>
-    </div>
+</section>
 
-    <div class="card">
-      <h3>متوسط الجودة</h3>
-      <div class="number" id="averageQuality">0%</div>
-    </div>
+<section>
 
-  </section>
+<h2>إنشاء طلب جديد</h2>
 
-  <!-- إنشاء طلب -->
+<form id="orderForm">
 
-  <section class="section">
+<label>اسم العميل</label>
+<input id="customerName" required>
 
-    <h2>إنشاء طلب جديد</h2>
+<label>البريد الإلكتروني</label>
+<input id="customerEmail" type="email" required>
 
-    <form id="orderForm">
+<label>الخدمة</label>
 
-      <label for="customerName">
-        اسم العميل
-      </label>
+<select id="service" required>
+<option value="">اختر الخدمة</option>
+<option>إعداد تقرير</option>
+<option>تحليل بيانات</option>
+<option>خطاب رسمي</option>
+<option>خدمة إدارية</option>
+<option>خدمة ذكاء اصطناعي</option>
+</select>
 
-      <input
-        id="customerName"
-        name="customerName"
-        type="text"
-        placeholder="اكتب اسم العميل"
-        required
-      >
+<label>السعر</label>
+<input id="price" type="number" value="0" min="0" required>
 
-      <label for="customerEmail">
-        البريد الإلكتروني
-      </label>
+<label>وصف الطلب</label>
+<textarea id="description"></textarea>
 
-      <input
-        id="customerEmail"
-        name="customerEmail"
-        type="email"
-        placeholder="example@email.com"
-        required
-      >
+<button type="submit">إنشاء الطلب</button>
 
-      <label for="service">
-        الخدمة
-      </label>
+</form>
 
-      <select
-        id="service"
-        name="service"
-        required
-      >
+<div id="result">جاهز لاستقبال الطلبات...</div>
 
-        <option value="">
-          اختر الخدمة
-        </option>
+</section>
 
-        <option value="إعداد تقرير">
-          إعداد تقرير
-        </option>
+<section>
 
-        <option value="تحليل بيانات">
-          تحليل بيانات
-        </option>
+<h2>الطلبات الحالية</h2>
 
-        <option value="خطاب رسمي">
-          خطاب رسمي
-        </option>
+<div id="ordersList">
+لا توجد طلبات حتى الآن.
+</div>
 
-        <option value="خدمة إدارية">
-          خدمة إدارية
-        </option>
-
-        <option value="خدمة ذكاء اصطناعي">
-          خدمة ذكاء اصطناعي
-        </option>
-
-      </select>
-
-      <label for="price">
-        السعر
-      </label>
-
-      <input
-        id="price"
-        name="price"
-        type="number"
-        min="0"
-        step="0.01"
-        placeholder="0"
-        value="0"
-        required
-      >
-
-      <label for="description">
-        وصف الطلب
-      </label>
-
-      <textarea
-        id="description"
-        name="description"
-        placeholder="اكتب تفاصيل طلب العميل..."
-      ></textarea>
-
-      <button
-        id="submitButton"
-        type="submit"
-      >
-        إنشاء الطلب
-      </button>
-
-    </form>
-
-    <div id="result">
-      جاهز لاستقبال الطلبات...
-    </div>
-
-  </section>
-
-  <!-- الطلبات -->
-
-  <section class="section">
-
-    <h2>الطلبات الحالية</h2>
-
-    <div id="ordersList" class="orders">
-      <div class="empty">
-        لا توجد طلبات حتى الآن.
-      </div>
-    </div>
-
-  </section>
+</section>
 
 </main>
 
 <footer>
-  AI OFFICE © 2026 — نظام إدارة الأعمال بالذكاء الاصطناعي
+AI OFFICE © 2026 — نظام إدارة الأعمال بالذكاء الاصطناعي
 </footer>
 
 <script>
 
-  // ==========================================
-  // عناصر الصفحة
-  // ==========================================
+const form=document.getElementById("orderForm");
+const result=document.getElementById("result");
 
-  const form = document.getElementById("orderForm");
+form.addEventListener("submit",async(e)=>{
 
-  const result = document.getElementById("result");
+e.preventDefault();
 
-  const submitButton =
-    document.getElementById("submitButton");
+result.textContent="جاري إنشاء الطلب...";
 
-  const ordersList =
-    document.getElementById("ordersList");
+const order={
+customerName:document.getElementById("customerName").value,
+customerEmail:document.getElementById("customerEmail").value,
+service:document.getElementById("service").value,
+price:Number(document.getElementById("price").value||0),
+description:document.getElementById("description").value
+};
 
+try{
 
-  // ==========================================
-  // إنشاء طلب جديد
-  // ==========================================
+const r=await fetch("/api/orders",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(order)
+});
 
-  form.addEventListener("submit", async function(event) {
+const data=await r.json();
 
-    event.preventDefault();
+if(!r.ok||!data.success)
+throw new Error(data.message||"تعذر إنشاء الطلب");
 
-    submitButton.disabled = true;
+result.textContent="✅ تم إنشاء الطلب بنجاح";
 
-    submitButton.textContent = "جاري إنشاء الطلب...";
+form.reset();
 
-    result.textContent = "جاري إرسال الطلب...";
+load();
 
-    const order = {
+}catch(error){
 
-      customerName:
-        document.getElementById("customerName").value.trim(),
+result.textContent="❌ "+error.message;
 
-      customerEmail:
-        document.getElementById("customerEmail").value.trim(),
+}
 
-      service:
-        document.getElementById("service").value,
+});
 
-      price:
-        Number(document.getElementById("price").value || 0),
+async function load(){
 
-      description:
-        document.getElementById("description").value.trim()
+try{
 
-    };
+const d=await(await fetch("/api/dashboard")).json();
 
+if(d.success){
 
-    try {
+document.getElementById("totalOrders").textContent=d.totalOrders||0;
+document.getElementById("revenue").textContent=(d.revenue||0)+" ريال";
+document.getElementById("paidOrders").textContent=d.paidOrders||0;
+document.getElementById("deliveredOrders").textContent=d.deliveredOrders||0;
+document.getElementById("averageQuality").textContent=(d.averageQuality||0)+"%";
 
-      const response = await fetch("/api/orders", {
+}
 
-        method: "POST",
+}catch(e){}
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+try{
 
-        body: JSON.stringify(order)
+const d=await(await fetch("/api/orders")).json();
 
-      });
+if(d.success&&d.orders&&d.orders.length){
 
+document.getElementById("ordersList").innerHTML=d.orders.slice().reverse().map(o=>`
 
-      const data = await response.json();
+<div class="order">
+<b>${safe(o.customerName)}</b>
+<div>الخدمة: ${safe(o.service)}</div>
+<div>السعر: ${o.price||0} ريال</div>
+<div>الحالة: ${safe(o.status||"new")}</div>
+</div>
 
+`).join("");
 
-      if (!response.ok || !data.success) {
+}
 
-        throw new Error(
-          data.message || "تعذر إنشاء الطلب"
-        );
+}catch(e){}
 
-      }
+}
 
+function safe(x){
 
-      result.textContent =
-        "✅ تم إنشاء الطلب بنجاح\n" +
-        "رقم الطلب: " +
-        data.order.id;
+return String(x)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
 
+}
 
-      form.reset();
-
-
-      await loadDashboard();
-
-      await loadOrders();
-
-
-    } catch (error) {
-
-      console.error(error);
-
-      result.textContent =
-        "❌ حدث خطأ أثناء إنشاء الطلب:\n" +
-        error.message;
-
-    } finally {
-
-      submitButton.disabled = false;
-
-      submitButton.textContent = "إنشاء الطلب";
-
-    }
-
-  });
-
-
-  // ==========================================
-  // تحميل الإحصائيات
-  // ==========================================
-
-  async function loadDashboard() {
-
-    try {
-
-      const response =
-        await fetch("/api/dashboard");
-
-      const data =
-        await response.json();
-
-
-      if (!data.success) {
-        return;
-      }
-
-
-      document.getElementById("totalOrders")
-        .textContent = data.totalOrders;
-
-
-      document.getElementById("revenue")
-        .textContent =
-          Number(data.revenue || 0) + " ريال";
-
-
-      document.getElementById("paidOrders")
-        .textContent = data.paidOrders;
-
-
-      document.getElementById("deliveredOrders")
-        .textContent = data.deliveredOrders;
-
-
-      document.getElementById("averageQuality")
-        .textContent =
-          Number(data.averageQuality || 0) + "%";
-
-
-    } catch (error) {
-
-      console.error(
-        "Dashboard error:",
-        error
-      );
-
-    }
-
-  }
-
-
-  // ==========================================
-  // تحميل الطلبات
-  // ==========================================
-
-  async function loadOrders() {
-
-    try {
-
-      const response =
-        await fetch("/api/orders");
-
-      const data =
-        await response.json();
-
-
-      if (!data.success) {
-        return;
-      }
-
-
-      if (!data.orders || data.orders.length === 0) {
-
-        ordersList.innerHTML =
-          '<div class="empty">لا توجد طلبات حتى الآن.</div>';
-
-        return;
-
-      }
-
-
-      ordersList.innerHTML =
-        data.orders
-          .slice()
-          .reverse()
-          .map(order => {
-
-            return `
-
-              <div class="order">
-
-                <strong>
-                  ${escapeHtml(order.customerName)}
-                </strong>
-
-                <div>
-                  ${escapeHtml(order.customerEmail)}
-                </div>
-
-                <div>
-                  الخدمة:
-                  ${escapeHtml(order.service)}
-                </div>
-
-                <div>
-                  السعر:
-                  ${Number(order.price || 0)} ريال
-                </div>
-
-                <div>
-                  ${escapeHtml(order.description || "")}
-                </div>
-
-                <div class="status">
-                  الحالة:
-                  ${escapeHtml(order.status)}
-                </div>
-
-              </div>
-
-            `;
-
-          })
-          .join("");
-
-
-    } catch (error) {
-
-      console.error(
-        "Orders error:",
-        error
-      );
-
-    }
-
-  }
-
-
-  // ==========================================
-  // حماية عرض النصوص
-  // ==========================================
-
-  function escapeHtml(value) {
-
-    return String(value)
-
-      .replaceAll("&", "&amp;")
-
-      .replaceAll("<", "&lt;")
-
-      .replaceAll(">", "&gt;")
-
-      .replaceAll('"', "&quot;")
-
-      .replaceAll("'", "&#039;");
-
-  }
-
-
-  // ==========================================
-  // تشغيل النظام عند فتح الصفحة
-  // ==========================================
-
-  loadDashboard();
-
-  loadOrders();
+load();
 
 </script>
 
