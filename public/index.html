@@ -288,13 +288,77 @@ document
 
     const result =
       document.getElementById("result");
+const form = document.getElementById("orderForm");
+const result = document.getElementById("result");
 
-    result.textContent = "جاري إنشاء الطلب...";
+form.addEventListener("submit", async function (event) {
+  event.preventDefault();
 
-    const order = {
+  result.textContent = "جاري إنشاء الطلب...";
 
-      customerName:
-        document.getElementById("customerName").value,
+  const order = {
+    customerName: document.getElementById("customerName").value.trim(),
+    customerEmail: document.getElementById("customerEmail").value.trim(),
+    service: document.getElementById("service").value,
+    price: document.getElementById("price").value,
+    description: document.getElementById("description").value.trim()
+  };
 
-      customerEmail:
-        document.getElementById("customer
+  try {
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(order)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "تعذر إنشاء الطلب");
+    }
+
+    result.textContent =
+      "✅ تم إنشاء الطلب بنجاح رقم: " + data.order.id;
+
+    form.reset();
+
+    loadDashboard();
+
+  } catch (error) {
+    console.error(error);
+
+    result.textContent =
+      "❌ حدث خطأ: " + error.message;
+  }
+});
+
+async function loadDashboard() {
+  try {
+    const response = await fetch("/api/dashboard");
+    const data = await response.json();
+
+    if (!data.success) return;
+
+    document.getElementById("totalOrders").textContent =
+      data.totalOrders;
+
+    document.getElementById("revenue").textContent =
+      data.revenue + " ريال";
+
+    document.getElementById("paidOrders").textContent =
+      data.paidOrders;
+
+    document.getElementById("deliveredOrders").textContent =
+      data.deliveredOrders;
+
+    document.getElementById("averageQuality").textContent =
+      data.averageQuality + "%";
+
+  } catch (error) {
+    console.error("Dashboard error:", error);
+  }
+}
+
+loadDashboard();
