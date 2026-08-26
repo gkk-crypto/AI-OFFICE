@@ -9,27 +9,19 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // =====================================================
-// AI OFFICE - SERVER
+// AI OFFICE - SERVER + OPENAI
 // =====================================================
-
-// -------------------------
-// الإعدادات الأساسية
-// -------------------------
 
 app.use(cors());
 
-app.use(
-  express.json({
-    limit: "10mb"
-  })
-);
+app.use(express.json({
+  limit: "10mb"
+}));
 
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb"
-  })
-);
+app.use(express.urlencoded({
+  extended: true,
+  limit: "10mb"
+}));
 
 // =====================================================
 // OPENAI
@@ -43,6 +35,7 @@ const openai = process.env.OPENAI_API_KEY
 
 const AI_MODEL =
   process.env.OPENAI_MODEL || "gpt-5.6-luna";
+
 
 // =====================================================
 // رفع الملفات
@@ -63,8 +56,9 @@ const upload = multer({
   }
 });
 
+
 // =====================================================
-// قاعدة البيانات البسيطة
+// قاعدة البيانات
 // =====================================================
 
 const dataDir = path.join(
@@ -91,12 +85,15 @@ if (!fs.existsSync(ordersFile)) {
   );
 }
 
+
 // =====================================================
 // وظائف قاعدة البيانات
 // =====================================================
 
 function getOrders() {
+
   try {
+
     const data = fs.readFileSync(
       ordersFile,
       "utf8"
@@ -107,17 +104,23 @@ function getOrders() {
     return Array.isArray(orders)
       ? orders
       : [];
+
   } catch (error) {
+
     console.error(
       "Error reading orders:",
       error
     );
 
     return [];
+
   }
+
 }
 
+
 function saveOrders(orders) {
+
   fs.writeFileSync(
     ordersFile,
     JSON.stringify(
@@ -127,109 +130,23 @@ function saveOrders(orders) {
     ),
     "utf8"
   );
+
 }
 
+
 // =====================================================
-// AI OFFICE - ORCHESTRATOR
+// ملفات الموقع
 // =====================================================
 
-async function runOrchestrator(order) {
-  if (!openai) {
-    return {
-      success: false,
-      available: false,
-      message:
-        "OPENAI_API_KEY غير موجود في إعدادات الخادم."
-    };
-  }
+app.use(
+  express.static(
+    path.join(
+      __dirname,
+      "public"
+    )
+  )
+);
 
-  const prompt = `
-أنت Orchestrator AI في نظام AI OFFICE.
-
-مهمتك تحليل طلب العميل وتحديد أفضل طريقة لتنفيذه.
-
-بيانات الطلب:
-
-اسم العميل:
-${order.customerName}
-
-الخدمة:
-${order.service}
-
-وصف الطلب:
-${order.description}
-
-السعر:
-${order.price} ريال
-
-قم بالآتي:
-
-1. فهم طلب العميل.
-2. تحديد الموظف المناسب من فريق AI OFFICE.
-3. تحديد خطوات التنفيذ.
-4. تنفيذ المهمة المطلوبة قدر الإمكان.
-5. إنشاء نتيجة احترافية جاهزة للعميل.
-6. اقتراح درجة جودة من 0 إلى 100.
-
-موظفو AI OFFICE:
-
-- Letters AI: الخطابات والمراسلات.
-- Reports AI: التقارير.
-- Data AI: تحليل البيانات.
-- Meetings AI: الاجتماعات.
-- Finance AI: المالية.
-- Sales AI: المبيعات والتسويق.
-- Operations AI: العمليات.
-- Quality AI: مراجعة الجودة.
-- Customer Success AI: خدمة العملاء.
-
-أعد النتيجة باللغة العربية.
-
-اجعل الرد عمليًا ومباشرًا وجاهزًا للاستخدام.
-`;
-
-  try {
-    const response =
-      await openai.responses.create({
-        model: AI_MODEL,
-
-        instructions:
-          "أنت نظام تشغيل داخلي احترافي اسمه AI OFFICE. تعامل مع طلبات العملاء باحترافية، ولا تخترع معلومات غير موجودة.",
-
-        input: prompt,
-
-        text: {
-          verbosity: "medium"
-        },
-
-        max_output_tokens: 1800
-      });
-
-    const output =
-      response.output_text ||
-      "";
-
-    return {
-      success: true,
-      available: true,
-      model: AI_MODEL,
-      result: output.trim()
-    };
-  } catch (error) {
-    console.error(
-      "OpenAI error:",
-      error
-    );
-
-    return {
-      success: false,
-      available: true,
-      message:
-        error?.message ||
-        "حدث خطأ أثناء تشغيل الذكاء الاصطناعي."
-    };
-  }
-}
 
 // =====================================================
 // Health Check
@@ -238,41 +155,137 @@ ${order.price} ريال
 app.get(
   "/api/health",
   (req, res) => {
+
     res.json({
+
       success: true,
+
       status: "online",
+
       service: "AI OFFICE",
-      ai:
-        openai
-          ? "connected"
-          : "not_configured",
-      model: AI_MODEL,
+
+      aiConfigured:
+        Boolean(openai),
+
+      model:
+        AI_MODEL,
+
       time:
         new Date().toISOString()
+
     });
+
   }
 );
 
+
 // =====================================================
-// AI TEST
+// اختبار OpenAI
 // =====================================================
 
 app.get(
   "/api/ai/status",
   (req, res) => {
+
     res.json({
+
       success: true,
+
+      service: "AI OFFICE",
+
       aiConfigured:
         Boolean(openai),
+
       model:
         AI_MODEL,
+
       message:
         openai
           ? "AI OFFICE AI متصل وجاهز."
-          : "أضف OPENAI_API_KEY في Render."
+          : "مفتاح OpenAI غير موجود في Render."
+
     });
+
   }
 );
+
+
+// =====================================================
+// اختبار مباشر للذكاء الاصطناعي
+// =====================================================
+
+app.post(
+  "/api/ai/test",
+  async (req, res) => {
+
+    try {
+
+      if (!openai) {
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "OPENAI_API_KEY غير موجود."
+
+        });
+
+      }
+
+      const prompt =
+        String(
+          req.body.prompt ||
+          "عرّف نفسك باختصار كمساعد AI داخل AI OFFICE."
+        );
+
+      const response =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          input:
+            prompt
+
+        });
+
+      res.json({
+
+        success: true,
+
+        model:
+          AI_MODEL,
+
+        result:
+          response.output_text || ""
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "OpenAI test error:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "حدث خطأ أثناء الاتصال بـ OpenAI.",
+
+        error:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
 
 // =====================================================
 // لوحة الإحصائيات
@@ -281,17 +294,19 @@ app.get(
 app.get(
   "/api/dashboard",
   (req, res) => {
-    const orders = getOrders();
+
+    const orders =
+      getOrders();
 
     const revenue =
       orders.reduce(
         (total, order) => {
-          return (
-            total +
+
+          return total +
             Number(
               order.price || 0
-            )
-          );
+            );
+
         },
         0
       );
@@ -299,90 +314,101 @@ app.get(
     const paidOrders =
       orders.filter(
         order =>
-          order.paymentStatus ===
-          "paid"
+          order.paymentStatus === "paid"
       ).length;
 
     const deliveredOrders =
       orders.filter(
         order =>
-          order.status ===
-            "delivered" ||
-          order.status ===
-            "completed"
+          order.status === "delivered" ||
+          order.status === "completed"
       ).length;
 
     const processingOrders =
       orders.filter(
         order =>
-          order.status ===
-          "processing"
+          order.status === "processing"
       ).length;
 
     const newOrders =
       orders.filter(
         order =>
-          order.status ===
-          "new"
+          order.status === "new"
       ).length;
 
     const reviewOrders =
       orders.filter(
         order =>
-          order.status ===
-          "review"
+          order.status === "review"
       ).length;
 
     const qualityOrders =
       orders.filter(
         order =>
-          order.quality !==
-            undefined &&
-          order.quality !==
-            null &&
-          Number(
-            order.quality
-          ) > 0
+          order.quality !== undefined &&
+          order.quality !== null &&
+          Number(order.quality) > 0
       );
 
     const averageQuality =
-      qualityOrders.length >
-      0
+      qualityOrders.length > 0
         ? Math.round(
+
             qualityOrders.reduce(
-              (sum, order) =>
-                sum +
-                Number(
-                  order.quality ||
-                    0
-                ),
+              (sum, order) => {
+
+                return sum +
+                  Number(
+                    order.quality || 0
+                  );
+
+              },
               0
             ) /
-              qualityOrders.length
+            qualityOrders.length
+
           )
         : 0;
 
     res.json({
+
       success: true,
+
       totalOrders:
         orders.length,
+
       revenue:
         revenue,
+
       paidOrders:
         paidOrders,
+
       deliveredOrders:
         deliveredOrders,
+
       processingOrders:
         processingOrders,
+
       newOrders:
         newOrders,
+
       reviewOrders:
         reviewOrders,
+
       averageQuality:
-        averageQuality
+        averageQuality,
+
+      aiConfigured:
+        Boolean(openai),
+
+      model:
+        AI_MODEL
+
     });
+
   }
 );
+
 
 // =====================================================
 // جلب الطلبات
@@ -391,6 +417,7 @@ app.get(
 app.get(
   "/api/orders",
   (req, res) => {
+
     let orders =
       getOrders();
 
@@ -398,69 +425,82 @@ app.get(
       String(
         req.query.search || ""
       )
-        .trim()
-        .toLowerCase();
+      .trim()
+      .toLowerCase();
 
     const status =
       String(
         req.query.status || ""
-      ).trim();
+      )
+      .trim();
 
     const paymentStatus =
       String(
-        req.query.paymentStatus ||
-          ""
-      ).trim();
+        req.query.paymentStatus || ""
+      )
+      .trim();
 
     if (search) {
+
       orders =
         orders.filter(
           order => {
+
             const text =
               [
                 order.id,
                 order.customerName,
                 order.customerEmail,
                 order.service,
-                order.description
+                order.description,
+                order.aiResult
               ]
-                .join(" ")
-                .toLowerCase();
+              .join(" ")
+              .toLowerCase();
 
-            return text.includes(
-              search
-            );
+            return text.includes(search);
+
           }
         );
+
     }
 
     if (status) {
+
       orders =
         orders.filter(
           order =>
-            order.status ===
-            status
+            order.status === status
         );
+
     }
 
     if (paymentStatus) {
+
       orders =
         orders.filter(
           order =>
             order.paymentStatus ===
             paymentStatus
         );
+
     }
 
     res.json({
+
       success: true,
+
       count:
         orders.length,
+
       orders:
         orders
+
     });
+
   }
 );
+
 
 // =====================================================
 // جلب طلب واحد
@@ -469,6 +509,7 @@ app.get(
 app.get(
   "/api/orders/:id",
   (req, res) => {
+
     const orders =
       getOrders();
 
@@ -476,194 +517,895 @@ app.get(
       orders.find(
         item =>
           String(item.id) ===
-          String(
-            req.params.id
-          )
+          String(req.params.id)
       );
 
     if (!order) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
     }
 
     res.json({
+
       success: true,
+
       order:
         order
+
     });
+
   }
 );
 
+
 // =====================================================
-// إنشاء طلب جديد + تشغيل AI
+// إنشاء طلب
 // =====================================================
 
 app.post(
   "/api/orders",
   async (req, res) => {
-    const {
-      customerName,
-      customerEmail,
-      service,
-      price,
-      description
-    } = req.body;
 
-    if (
-      !customerName ||
-      !customerEmail ||
-      !service
-    ) {
-      return res
-        .status(400)
-        .json({
+    try {
+
+      const {
+        customerName,
+        customerEmail,
+        service,
+        price,
+        description
+      } = req.body;
+
+      if (
+        !customerName ||
+        !customerEmail ||
+        !service
+      ) {
+
+        return res.status(400).json({
+
           success: false,
+
           message:
             "يرجى تعبئة بيانات العميل والخدمة"
+
         });
-    }
 
-    const orders =
-      getOrders();
+      }
 
-    const now =
-      new Date().toISOString();
+      const orders =
+        getOrders();
 
-    const newOrder = {
-      id:
-        Date.now().toString(),
+      const now =
+        new Date().toISOString();
 
-      customerName:
-        String(
-          customerName
-        ).trim(),
+      const newOrder = {
 
-      customerEmail:
-        String(
-          customerEmail
-        ).trim(),
+        id:
+          Date.now().toString(),
 
-      service:
-        String(
-          service
-        ).trim(),
+        customerName:
+          String(
+            customerName
+          ).trim(),
 
-      price:
-        Number(
-          price || 0
-        ),
+        customerEmail:
+          String(
+            customerEmail
+          ).trim(),
 
-      description:
-        String(
-          description || ""
-        ).trim(),
+        service:
+          String(
+            service
+          ).trim(),
 
-      status:
-        "processing",
+        price:
+          Number(
+            price || 0
+          ),
 
-      paymentStatus:
-        "unpaid",
+        description:
+          String(
+            description || ""
+          ).trim(),
 
-      quality:
-        0,
+        status:
+          "new",
 
-      aiStatus:
-        "processing",
+        paymentStatus:
+          "unpaid",
 
-      aiEmployee:
-        "Orchestrator AI",
+        quality:
+          0,
 
-      aiResult:
-        "",
+        aiEmployee:
+          null,
 
-      createdAt:
-        now,
+        aiResult:
+          null,
 
-      updatedAt:
-        now
-    };
+        aiQualityReview:
+          null,
 
-    // حفظ الطلب أولًا
-    orders.push(
-      newOrder
-    );
+        createdAt:
+          now,
 
-    saveOrders(
-      orders
-    );
+        updatedAt:
+          now
 
-    // تشغيل الذكاء الاصطناعي
-    const aiResult =
-      await runOrchestrator(
+      };
+
+      orders.push(
         newOrder
       );
-
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(newOrder.id)
-      );
-
-    if (index !== -1) {
-      if (
-        aiResult.success
-      ) {
-        orders[index].aiStatus =
-          "completed";
-
-        orders[index].aiResult =
-          aiResult.result;
-
-        orders[index].aiModel =
-          aiResult.model;
-
-        orders[index].status =
-          "review";
-
-        orders[index].updatedAt =
-          new Date().toISOString();
-      } else {
-        orders[index].aiStatus =
-          "error";
-
-        orders[index].aiError =
-          aiResult.message;
-
-        orders[index].status =
-          "new";
-
-        orders[index].updatedAt =
-          new Date().toISOString();
-      }
 
       saveOrders(
         orders
       );
+
+      res.status(201).json({
+
+        success: true,
+
+        message:
+          "تم إنشاء الطلب بنجاح",
+
+        order:
+          newOrder
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Create order error:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "حدث خطأ أثناء إنشاء الطلب"
+
+      });
+
     }
 
-    const finalOrder =
-      orders[index] ||
-      newOrder;
-
-    res.status(201).json({
-      success: true,
-
-      message:
-        aiResult.success
-          ? "تم إنشاء الطلب وتنفيذه بواسطة AI OFFICE"
-          : "تم إنشاء الطلب، لكن تعذر تشغيل الذكاء الاصطناعي",
-
-      order:
-        finalOrder
-    });
   }
 );
+
+
+// =====================================================
+// ORCHESTRATOR AI
+// تحديد الموظف المناسب
+// =====================================================
+
+app.post(
+  "/api/orders/:id/ai/route",
+  async (req, res) => {
+
+    try {
+
+      if (!openai) {
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "OpenAI غير متصل."
+
+        });
+
+      }
+
+      const orders =
+        getOrders();
+
+      const index =
+        orders.findIndex(
+          order =>
+            String(order.id) ===
+            String(req.params.id)
+        );
+
+      if (index === -1) {
+
+        return res.status(404).json({
+
+          success: false,
+
+          message:
+            "الطلب غير موجود"
+
+        });
+
+      }
+
+      const order =
+        orders[index];
+
+      const response =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          instructions: `
+أنت Orchestrator AI داخل نظام AI OFFICE.
+
+مهمتك تحديد الموظف المناسب لتنفيذ طلب العميل.
+
+الموظفون المتاحون:
+- Letters AI: الخطابات والمراسلات
+- Reports AI: التقارير
+- Data AI: تحليل البيانات
+- Meetings AI: الاجتماعات
+- Finance AI: المالية
+- Sales AI: المبيعات والتسويق
+- Operations AI: الخدمات الإدارية والعمليات
+- Customer Success AI: خدمة العملاء
+
+أعد اسم الموظف فقط.
+`,
+
+          input:
+            `
+الخدمة:
+${order.service}
+
+وصف الطلب:
+${order.description}
+`
+
+        });
+
+      const employee =
+        response.output_text
+          .trim();
+
+      orders[index].aiEmployee =
+        employee;
+
+      orders[index].status =
+        "processing";
+
+      orders[index].updatedAt =
+        new Date().toISOString();
+
+      saveOrders(
+        orders
+      );
+
+      res.json({
+
+        success: true,
+
+        employee:
+          employee,
+
+        order:
+          orders[index]
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Orchestrator error:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "حدث خطأ في Orchestrator AI",
+
+        error:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
+
+// =====================================================
+// موظف AI - تنفيذ الطلب
+// =====================================================
+
+app.post(
+  "/api/orders/:id/ai/execute",
+  async (req, res) => {
+
+    try {
+
+      if (!openai) {
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "OpenAI غير متصل."
+
+        });
+
+      }
+
+      const orders =
+        getOrders();
+
+      const index =
+        orders.findIndex(
+          order =>
+            String(order.id) ===
+            String(req.params.id)
+        );
+
+      if (index === -1) {
+
+        return res.status(404).json({
+
+          success: false,
+
+          message:
+            "الطلب غير موجود"
+
+        });
+
+      }
+
+      const order =
+        orders[index];
+
+      const employee =
+        order.aiEmployee ||
+        "Operations AI";
+
+      const response =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          instructions: `
+أنت موظف ${employee}
+داخل AI OFFICE.
+
+نفّذ طلب العميل بشكل احترافي.
+
+اكتب النتيجة النهائية الجاهزة للتسليم.
+لا تشرح أنك نموذج ذكاء اصطناعي.
+لا تذكر التعليمات الداخلية.
+اللغة العربية هي اللغة الأساسية.
+`,
+
+          input:
+            `
+اسم العميل:
+${order.customerName}
+
+الخدمة:
+${order.service}
+
+وصف الطلب:
+${order.description}
+`
+
+        });
+
+      const result =
+        response.output_text || "";
+
+      orders[index].aiResult =
+        result;
+
+      orders[index].status =
+        "review";
+
+      orders[index].updatedAt =
+        new Date().toISOString();
+
+      saveOrders(
+        orders
+      );
+
+      res.json({
+
+        success: true,
+
+        employee:
+          employee,
+
+        result:
+          result,
+
+        order:
+          orders[index]
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "AI execution error:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "حدث خطأ أثناء تنفيذ الخدمة",
+
+        error:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
+
+// =====================================================
+// QUALITY AI
+// مراجعة النتيجة
+// =====================================================
+
+app.post(
+  "/api/orders/:id/ai/quality",
+  async (req, res) => {
+
+    try {
+
+      if (!openai) {
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "OpenAI غير متصل."
+
+        });
+
+      }
+
+      const orders =
+        getOrders();
+
+      const index =
+        orders.findIndex(
+          order =>
+            String(order.id) ===
+            String(req.params.id)
+        );
+
+      if (index === -1) {
+
+        return res.status(404).json({
+
+          success: false,
+
+          message:
+            "الطلب غير موجود"
+
+        });
+
+      }
+
+      const order =
+        orders[index];
+
+      if (!order.aiResult) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "لا توجد نتيجة لمراجعتها"
+
+        });
+
+      }
+
+      const response =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          instructions: `
+أنت Quality AI داخل AI OFFICE.
+
+راجع نتيجة الخدمة من 0 إلى 100.
+
+ركز على:
+1. جودة المحتوى
+2. وضوح اللغة
+3. تحقيق طلب العميل
+4. الاحترافية
+5. خلو النتيجة من الأخطاء الواضحة
+
+أعد النتيجة بهذا الشكل:
+
+SCORE: رقم من 0 إلى 100
+COMMENT: تعليق مختصر
+`,
+
+          input:
+            `
+طلب العميل:
+${order.description}
+
+النتيجة:
+${order.aiResult}
+`
+
+        });
+
+      const review =
+        response.output_text || "";
+
+      const scoreMatch =
+        review.match(
+          /SCORE\s*:\s*(\d{1,3})/i
+        );
+
+      let score =
+        scoreMatch
+          ? Number(scoreMatch[1])
+          : 80;
+
+      score =
+        Math.max(
+          0,
+          Math.min(
+            100,
+            score
+          )
+        );
+
+      orders[index].quality =
+        score;
+
+      orders[index].aiQualityReview =
+        review;
+
+      orders[index].status =
+        score >= 70
+          ? "completed"
+          : "processing";
+
+      orders[index].updatedAt =
+        new Date().toISOString();
+
+      saveOrders(
+        orders
+      );
+
+      res.json({
+
+        success: true,
+
+        quality:
+          score,
+
+        review:
+          review,
+
+        order:
+          orders[index]
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Quality AI error:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "حدث خطأ أثناء مراجعة الجودة",
+
+        error:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
+
+// =====================================================
+// تشغيل دورة AI كاملة
+// Orchestrator → Employee → Quality
+// =====================================================
+
+app.post(
+  "/api/orders/:id/ai/run",
+  async (req, res) => {
+
+    try {
+
+      if (!openai) {
+
+        return res.status(503).json({
+
+          success: false,
+
+          message:
+            "OpenAI غير متصل. تأكد من OPENAI_API_KEY في Render."
+
+        });
+
+      }
+
+      const orders =
+        getOrders();
+
+      const index =
+        orders.findIndex(
+          order =>
+            String(order.id) ===
+            String(req.params.id)
+        );
+
+      if (index === -1) {
+
+        return res.status(404).json({
+
+          success: false,
+
+          message:
+            "الطلب غير موجود"
+
+        });
+
+      }
+
+      const order =
+        orders[index];
+
+
+      // -------------------------
+      // 1. Orchestrator
+      // -------------------------
+
+      const routeResponse =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          instructions: `
+أنت Orchestrator AI في AI OFFICE.
+
+حدد الموظف المناسب لهذا الطلب.
+
+الموظفون:
+Letters AI
+Reports AI
+Data AI
+Meetings AI
+Finance AI
+Sales AI
+Operations AI
+Customer Success AI
+
+أعد اسم الموظف فقط.
+`,
+
+          input:
+            `
+الخدمة:
+${order.service}
+
+الطلب:
+${order.description}
+`
+
+        });
+
+      const employee =
+        routeResponse.output_text
+          .trim();
+
+
+      // -------------------------
+      // 2. Employee AI
+      // -------------------------
+
+      const executeResponse =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          instructions: `
+أنت ${employee} داخل AI OFFICE.
+
+نفّذ طلب العميل بشكل احترافي.
+أنتج نتيجة جاهزة للتسليم.
+استخدم العربية.
+`,
+
+          input:
+            `
+العميل:
+${order.customerName}
+
+الخدمة:
+${order.service}
+
+الوصف:
+${order.description}
+`
+
+        });
+
+      const result =
+        executeResponse.output_text || "";
+
+
+      // -------------------------
+      // 3. Quality AI
+      // -------------------------
+
+      const qualityResponse =
+        await openai.responses.create({
+
+          model:
+            AI_MODEL,
+
+          instructions: `
+أنت Quality AI.
+
+راجع النتيجة وأعط درجة من 0 إلى 100.
+
+أعد:
+SCORE: رقم
+COMMENT: تعليق مختصر
+`,
+
+          input:
+            `
+الطلب:
+${order.description}
+
+النتيجة:
+${result}
+`
+
+        });
+
+      const review =
+        qualityResponse.output_text || "";
+
+      const scoreMatch =
+        review.match(
+          /SCORE\s*:\s*(\d{1,3})/i
+        );
+
+      let score =
+        scoreMatch
+          ? Number(scoreMatch[1])
+          : 80;
+
+      score =
+        Math.max(
+          0,
+          Math.min(
+            100,
+            score
+          )
+        );
+
+
+      // -------------------------
+      // حفظ النتيجة
+      // -------------------------
+
+      orders[index].aiEmployee =
+        employee;
+
+      orders[index].aiResult =
+        result;
+
+      orders[index].aiQualityReview =
+        review;
+
+      orders[index].quality =
+        score;
+
+      orders[index].status =
+        score >= 70
+          ? "completed"
+          : "review";
+
+      orders[index].updatedAt =
+        new Date().toISOString();
+
+      saveOrders(
+        orders
+      );
+
+
+      res.json({
+
+        success: true,
+
+        workflow: {
+
+          orchestrator:
+            employee,
+
+          result:
+            result,
+
+          quality:
+            score,
+
+          review:
+            review
+
+        },
+
+        order:
+          orders[index]
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "AI workflow error:",
+        error
+      );
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          "حدث خطأ أثناء تشغيل دورة AI OFFICE",
+
+        error:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
 
 // =====================================================
 // تحديث طلب
@@ -672,6 +1414,7 @@ app.post(
 app.put(
   "/api/orders/:id",
   (req, res) => {
+
     const orders =
       getOrders();
 
@@ -679,32 +1422,35 @@ app.put(
       orders.findIndex(
         order =>
           String(order.id) ===
-          String(
-            req.params.id
-          )
+          String(req.params.id)
       );
 
     if (index === -1) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
     }
 
     if (
-      req.body.status !==
-      undefined
+      req.body.status !== undefined
     ) {
+
       const allowedStatuses = [
+
         "new",
         "processing",
         "review",
         "delivered",
         "completed",
         "cancelled"
+
       ];
 
       if (
@@ -712,20 +1458,26 @@ app.put(
           req.body.status
         )
       ) {
+
         orders[index].status =
           req.body.status;
+
       }
+
     }
 
     if (
       req.body.paymentStatus !==
       undefined
     ) {
+
       const allowedPayments = [
+
         "unpaid",
         "paid",
         "refunded",
         "pending"
+
       ];
 
       if (
@@ -733,26 +1485,29 @@ app.put(
           req.body.paymentStatus
         )
       ) {
+
         orders[index].paymentStatus =
           req.body.paymentStatus;
+
       }
+
     }
 
     if (
-      req.body.quality !==
-      undefined
+      req.body.quality !== undefined
     ) {
+
       let quality =
         Number(
           req.body.quality
         );
 
       if (
-        Number.isNaN(
-          quality
-        )
+        Number.isNaN(quality)
       ) {
+
         quality = 0;
+
       }
 
       quality =
@@ -766,16 +1521,19 @@ app.put(
 
       orders[index].quality =
         quality;
+
     }
 
     if (
       req.body.description !==
       undefined
     ) {
+
       orders[index].description =
         String(
           req.body.description
         ).trim();
+
     }
 
     orders[index].updatedAt =
@@ -786,125 +1544,42 @@ app.put(
     );
 
     res.json({
+
       success: true,
+
       message:
         "تم تحديث الطلب بنجاح",
-      order:
-        orders[index]
-    });
-  }
-);
-
-// =====================================================
-// إعادة تشغيل AI لطلب موجود
-// =====================================================
-
-app.post(
-  "/api/orders/:id/run-ai",
-  async (req, res) => {
-    const orders =
-      getOrders();
-
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(
-            req.params.id
-          )
-      );
-
-    if (index === -1) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
-    }
-
-    orders[index].aiStatus =
-      "processing";
-
-    orders[index].status =
-      "processing";
-
-    saveOrders(
-      orders
-    );
-
-    const result =
-      await runOrchestrator(
-        orders[index]
-      );
-
-    if (result.success) {
-      orders[index].aiStatus =
-        "completed";
-
-      orders[index].aiResult =
-        result.result;
-
-      orders[index].aiModel =
-        result.model;
-
-      orders[index].status =
-        "review";
-
-      orders[index].updatedAt =
-        new Date().toISOString();
-    } else {
-      orders[index].aiStatus =
-        "error";
-
-      orders[index].aiError =
-        result.message;
-
-      orders[index].status =
-        "new";
-
-      orders[index].updatedAt =
-        new Date().toISOString();
-    }
-
-    saveOrders(
-      orders
-    );
-
-    res.json({
-      success:
-        result.success,
-
-      message:
-        result.success
-          ? "تم تشغيل AI بنجاح"
-          : result.message,
 
       order:
         orders[index]
+
     });
+
   }
 );
 
+
 // =====================================================
-// تغيير حالة الطلب بسرعة
+// تغيير حالة الطلب
 // =====================================================
 
 app.patch(
   "/api/orders/:id/status",
   (req, res) => {
+
     const {
       status
     } = req.body;
 
     const allowedStatuses = [
+
       "new",
       "processing",
       "review",
       "delivered",
       "completed",
       "cancelled"
+
     ];
 
     if (
@@ -912,13 +1587,16 @@ app.patch(
         status
       )
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "حالة الطلب غير صحيحة"
-        });
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "حالة الطلب غير صحيحة"
+
+      });
+
     }
 
     const orders =
@@ -928,19 +1606,20 @@ app.patch(
       orders.findIndex(
         order =>
           String(order.id) ===
-          String(
-            req.params.id
-          )
+          String(req.params.id)
       );
 
     if (index === -1) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
     }
 
     orders[index].status =
@@ -954,31 +1633,40 @@ app.patch(
     );
 
     res.json({
+
       success: true,
+
       message:
         "تم تغيير حالة الطلب",
+
       order:
         orders[index]
+
     });
+
   }
 );
 
+
 // =====================================================
-// تغيير حالة الدفع
+// الدفع
 // =====================================================
 
 app.patch(
   "/api/orders/:id/payment",
   (req, res) => {
+
     const {
       paymentStatus
     } = req.body;
 
     const allowedPayments = [
+
       "unpaid",
       "paid",
       "pending",
       "refunded"
+
     ];
 
     if (
@@ -986,13 +1674,16 @@ app.patch(
         paymentStatus
       )
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "حالة الدفع غير صحيحة"
-        });
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "حالة الدفع غير صحيحة"
+
+      });
+
     }
 
     const orders =
@@ -1002,19 +1693,20 @@ app.patch(
       orders.findIndex(
         order =>
           String(order.id) ===
-          String(
-            req.params.id
-          )
+          String(req.params.id)
       );
 
     if (index === -1) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
     }
 
     orders[index].paymentStatus =
@@ -1028,39 +1720,47 @@ app.patch(
     );
 
     res.json({
+
       success: true,
+
       message:
         "تم تحديث حالة الدفع",
+
       order:
         orders[index]
+
     });
+
   }
 );
 
+
 // =====================================================
-// تحديث الجودة
+// الجودة اليدوية
 // =====================================================
 
 app.patch(
   "/api/orders/:id/quality",
   (req, res) => {
+
     let quality =
       Number(
         req.body.quality
       );
 
     if (
-      Number.isNaN(
-        quality
-      )
+      Number.isNaN(quality)
     ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "قيمة الجودة غير صحيحة"
-        });
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "قيمة الجودة غير صحيحة"
+
+      });
+
     }
 
     quality =
@@ -1079,19 +1779,20 @@ app.patch(
       orders.findIndex(
         order =>
           String(order.id) ===
-          String(
-            req.params.id
-          )
+          String(req.params.id)
       );
 
     if (index === -1) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
     }
 
     orders[index].quality =
@@ -1105,14 +1806,20 @@ app.patch(
     );
 
     res.json({
+
       success: true,
+
       message:
         "تم تحديث جودة الطلب",
+
       order:
         orders[index]
+
     });
+
   }
 );
+
 
 // =====================================================
 // حذف طلب
@@ -1121,6 +1828,7 @@ app.patch(
 app.delete(
   "/api/orders/:id",
   (req, res) => {
+
     const orders =
       getOrders();
 
@@ -1128,19 +1836,20 @@ app.delete(
       orders.findIndex(
         order =>
           String(order.id) ===
-          String(
-            req.params.id
-          )
+          String(req.params.id)
       );
 
     if (index === -1) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "الطلب غير موجود"
+
+      });
+
     }
 
     const deletedOrder =
@@ -1154,14 +1863,20 @@ app.delete(
     );
 
     res.json({
+
       success: true,
+
       message:
         "تم حذف الطلب بنجاح",
+
       order:
         deletedOrder
+
     });
+
   }
 );
+
 
 // =====================================================
 // رفع ملف
@@ -1171,22 +1886,29 @@ app.post(
   "/api/upload",
   upload.single("file"),
   (req, res) => {
+
     if (!req.file) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "لم يتم رفع ملف"
-        });
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "لم يتم رفع ملف"
+
+      });
+
     }
 
     res.json({
+
       success: true,
+
       message:
         "تم استلام الملف بنجاح",
 
       file: {
+
         originalName:
           req.file.originalname,
 
@@ -1198,19 +1920,23 @@ app.post(
 
         type:
           req.file.mimetype
+
       }
+
     });
+
   }
 );
 
+
 // =====================================================
 // الصفحة الرئيسية
-// Express 5
 // =====================================================
 
 app.get(
   "/{*splat}",
   (req, res) => {
+
     res.sendFile(
       path.join(
         __dirname,
@@ -1218,8 +1944,10 @@ app.get(
         "index.html"
       )
     );
+
   }
 );
+
 
 // =====================================================
 // تشغيل الخادم
@@ -1229,18 +1957,18 @@ app.listen(
   PORT,
   "0.0.0.0",
   () => {
+
     console.log(
       `AI OFFICE running on port ${PORT}`
     );
 
     console.log(
-      `AI configured: ${Boolean(
-        openai
-      )}`
+      `AI configured: ${Boolean(openai)}`
     );
 
     console.log(
       `AI model: ${AI_MODEL}`
     );
+
   }
 );
