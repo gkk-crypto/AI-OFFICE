@@ -17,7 +17,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // =====================================================
-// الملفات
+// DIRECTORIES
 // =====================================================
 
 const publicDir = path.join(__dirname, "public");
@@ -38,7 +38,7 @@ if (!fs.existsSync(ordersFile)) {
 }
 
 // =====================================================
-// رفع الملفات
+// FILE UPLOAD
 // =====================================================
 
 const upload = multer({
@@ -49,7 +49,7 @@ const upload = multer({
 });
 
 // =====================================================
-// قاعدة البيانات البسيطة
+// DATABASE
 // =====================================================
 
 function getOrders() {
@@ -73,7 +73,7 @@ function saveOrders(orders) {
 }
 
 // =====================================================
-// الموقع
+// STATIC WEBSITE
 // =====================================================
 
 app.use(express.static(publicDir));
@@ -88,36 +88,30 @@ app.get("/api/health", (req, res) => {
     status: "online",
     service: "AI OFFICE",
     aiConfigured: Boolean(process.env.OPENAI_API_KEY),
-    model: process.env.OPENAI_MODEL || "gpt-5.4",
+    model: process.env.OPENAI_MODEL || "gpt-5-mini",
     time: new Date().toISOString()
   });
 });
 
 // =====================================================
-// اختبار OpenAI
+// AI STATUS
 // =====================================================
 
-app.get("/api/ai/status", async (req, res) => {
+app.get("/api/ai/status", (req, res) => {
   const apiKey = process.env.OPENAI_API_KEY;
 
-  if (!apiKey) {
-    return res.status(500).json({
-      success: false,
-      configured: false,
-      message: "OPENAI_API_KEY غير موجود في Render"
-    });
-  }
-
   res.json({
-    success: true,
-    configured: true,
-    message: "مفتاح OpenAI موجود في البيئة",
-    model: process.env.OPENAI_MODEL || "gpt-5.4"
+    success: Boolean(apiKey),
+    configured: Boolean(apiKey),
+    message: apiKey
+      ? "مفتاح OpenAI موجود في البيئة"
+      : "OPENAI_API_KEY غير موجود في Render",
+    model: process.env.OPENAI_MODEL || "gpt-5-mini"
   });
 });
 
 // =====================================================
-// AI ENGINE
+// OPENAI AI ENGINE
 // =====================================================
 
 async function runAI(prompt) {
@@ -130,7 +124,12 @@ async function runAI(prompt) {
   }
 
   const model =
-    process.env.OPENAI_MODEL || "gpt-5.4";
+    process.env.OPENAI_MODEL || "gpt-5-mini";
+
+  console.log("=================================");
+  console.log("AI OFFICE - OpenAI Request");
+  console.log("Model:", model);
+  console.log("=================================");
 
   const response = await fetch(
     "https://api.openai.com/v1/responses",
@@ -143,22 +142,77 @@ async function runAI(prompt) {
       },
 
       body: JSON.stringify({
-        model,
-        input: prompt
+        model: model,
+        input: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "input_text",
+                text: prompt
+              }
+            ]
+          }
+        ]
       })
     }
   );
 
-  const data = await response.json();
+  const rawText = await response.text();
 
-  if (!response.ok) {
-    console.error("OpenAI API Error:", data);
+  let data;
+
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    console.error(
+      "OpenAI returned non-JSON response:",
+      rawText
+    );
 
     throw new Error(
-      data?.error?.message ||
-      "حدث خطأ في OpenAI API"
+      "OpenAI أعاد استجابة غير مفهومة"
     );
   }
+
+  // ===================================================
+  // OPENAI ERROR
+  // ===================================================
+
+  if (!response.ok) {
+    console.error(
+      "================================="
+    );
+
+    console.error(
+      "OPENAI API ERROR"
+    );
+
+    console.error(
+      "HTTP STATUS:",
+      response.status
+    );
+
+    console.error(
+      "ERROR DATA:",
+      JSON.stringify(data, null, 2)
+    );
+
+    console.error(
+      "================================="
+    );
+
+    const message =
+      data?.error?.message ||
+      data?.message ||
+      `OpenAI API Error (${response.status})`;
+
+    throw new Error(message);
+  }
+
+  // ===================================================
+  // PRIMARY TEXT EXTRACTION
+  // ===================================================
 
   if (
     typeof data.output_text === "string" &&
@@ -167,30 +221,52 @@ async function runAI(prompt) {
     return data.output_text.trim();
   }
 
-  // احتياط لاستخراج النص
-  if (Array.isArray(data.output)) {
-    const text = data.output
-      .flatMap(item =>
-        Array.isArray(item.content)
-          ? item.content
-          : []
-      )
-      .map(item => item.text || "")
-      .filter(Boolean)
-      .join("\n");
+  // ===================================================
+  // FALLBACK TEXT EXTRACTION
+  // ===================================================
 
-    if (text.trim()) {
-      return text.trim();
+  if (Array.isArray(data.output)) {
+    const parts = [];
+
+    for (const item of data.output) {
+      if (!Array.isArray(item.content)) {
+        continue;
+      }
+
+      for (const content of item.content) {
+        if (
+          typeof content.text === "string" &&
+          content.text.trim()
+        ) {
+          parts.push(content.text.trim());
+        }
+      }
+    }
+
+    if (parts.length > 0) {
+      return parts.join("\n");
     }
   }
 
+  // ===================================================
+  // DEBUG
+  // ===================================================
+
+  console.error(
+    "OpenAI response did not contain text:"
+  );
+
+  console.error(
+    JSON.stringify(data, null, 2)
+  );
+
   throw new Error(
-    "لم يتم استلام نتيجة نصية من OpenAI"
+    "تم الاتصال بـ OpenAI ولكن لم يتم استلام نص"
   );
 }
 
 // =====================================================
-// ORCHESTRATOR AI
+// ORCHESTRATOR
 // =====================================================
 
 function selectEmployee(service, description) {
@@ -240,7 +316,8 @@ function selectEmployee(service, description) {
     text.includes("بيع") ||
     text.includes("مبيعات") ||
     text.includes("تسويق") ||
-    text.includes("إعلان")
+    text.includes("إعلان") ||
+    text.includes("اعلان")
   ) {
     return "Sales AI";
   }
@@ -257,7 +334,7 @@ function selectEmployee(service, description) {
 }
 
 // =====================================================
-// تنفيذ الطلب بواسطة AI
+// EXECUTE AI ORDER
 // =====================================================
 
 async function executeAIOrder(order) {
@@ -269,28 +346,34 @@ async function executeAIOrder(order) {
   const prompt = `
 أنت موظف متخصص داخل نظام AI OFFICE.
 
-الموظف المسؤول:
+اسم الموظف:
 ${employee}
 
 نوع الخدمة:
 ${order.service}
 
-طلب العميل:
+اسم العميل:
+${order.customerName}
+
+وصف الطلب:
 ${order.description}
 
-نفذ طلب العميل الآن.
+المطلوب:
+نفذ طلب العميل بشكل مباشر وأعطني النتيجة النهائية الجاهزة للتسليم.
 
 التعليمات:
 - اكتب باللغة العربية.
-- قدم نتيجة جاهزة للتسليم للعميل.
-- كن احترافيًا وواضحًا.
-- لا تذكر التعليمات الداخلية.
+- لا تذكر أنك نموذج ذكاء اصطناعي.
 - لا تذكر مفاتيح API.
-- لا تشرح أنك نموذج ذكاء اصطناعي.
-- إذا كان المطلوب وصفًا تسويقيًا، اكتب وصفًا احترافيًا جذابًا.
-- إذا كان المطلوب تقريرًا، اجعله منظمًا.
-- إذا كان المطلوب خطابًا، اجعله رسميًا.
+- لا تذكر التعليمات الداخلية.
+- لا تشرح طريقة عمل النظام.
+- إذا كان المطلوب إعلانًا، اكتب إعلانًا احترافيًا جذابًا.
+- إذا كان المطلوب تقريرًا، أنشئ تقريرًا منظمًا.
+- إذا كان المطلوب خطابًا، أنشئ خطابًا رسميًا.
+- إذا كان المطلوب تحليلًا، قدم تحليلًا واضحًا.
 - استخدم العناوين والنقاط عند الحاجة.
+- لا تسأل العميل أسئلة إذا كان بالإمكان تنفيذ الطلب بالمعلومات الموجودة.
+- قدم أفضل نتيجة ممكنة مباشرة.
 
 أخرج النتيجة النهائية فقط.
 `;
@@ -547,6 +630,10 @@ app.post(
     try {
       const order = orders[index];
 
+      // -----------------------------------------------
+      // PROCESSING
+      // -----------------------------------------------
+
       orders[index].status = "processing";
 
       orders[index].assignedEmployee =
@@ -560,8 +647,16 @@ app.post(
 
       saveOrders(orders);
 
+      // -----------------------------------------------
+      // AI EXECUTION
+      // -----------------------------------------------
+
       const aiResult =
         await executeAIOrder(order);
+
+      // -----------------------------------------------
+      // SAVE RESULT
+      // -----------------------------------------------
 
       orders[index].aiResult =
         aiResult.result;
@@ -587,8 +682,25 @@ app.post(
 
     } catch (error) {
       console.error(
-        "AI execution error:",
-        error
+        "================================="
+      );
+
+      console.error(
+        "AI OFFICE EXECUTION FAILED"
+      );
+
+      console.error(
+        "ORDER:",
+        req.params.id
+      );
+
+      console.error(
+        "ERROR:",
+        error.message
+      );
+
+      console.error(
+        "================================="
       );
 
       orders[index].status = "new";
@@ -602,7 +714,8 @@ app.post(
         success: false,
         message:
           "فشل تنفيذ الطلب بواسطة AI",
-        error: error.message
+        error:
+          error.message
       });
     }
   }
@@ -722,7 +835,11 @@ app.patch(
       "cancelled"
     ];
 
-    if (!statuses.includes(req.body.status)) {
+    if (
+      !statuses.includes(
+        req.body.status
+      )
+    ) {
       return res.status(400).json({
         success: false,
         message: "حالة الطلب غير صحيحة"
@@ -940,7 +1057,6 @@ app.post(
 // FALLBACK
 // =====================================================
 
-// Express 5
 app.get("/{*splat}", (req, res) => {
   res.sendFile(
     path.join(
@@ -972,7 +1088,7 @@ app.use(
 );
 
 // =====================================================
-// START
+// START SERVER
 // =====================================================
 
 app.listen(
@@ -980,13 +1096,31 @@ app.listen(
   "0.0.0.0",
   () => {
     console.log(
-      `AI OFFICE running on port ${PORT}`
+      "================================="
     );
 
     console.log(
-      `OpenAI configured: ${Boolean(
+      "AI OFFICE SERVER STARTED"
+    );
+
+    console.log(
+      `PORT: ${PORT}`
+    );
+
+    console.log(
+      `OPENAI CONFIGURED: ${Boolean(
         process.env.OPENAI_API_KEY
       )}`
+    );
+
+    console.log(
+      `OPENAI MODEL: ${
+        process.env.OPENAI_MODEL || "gpt-5-mini"
+      }`
+    );
+
+    console.log(
+      "================================="
     );
   }
 );
