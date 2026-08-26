@@ -7,7 +7,6 @@
 <title>AI OFFICE — لوحة إدارة الأعمال</title>
 
 <style>
-
 *{
   box-sizing:border-box;
 }
@@ -34,87 +33,175 @@ body{
   color:var(--text);
 }
 
-header{
-  background:linear-gradient(135deg,#111827,#312e81);
-  color:white;
-  padding:30px 20px;
-  box-shadow:0 4px 20px rgba(0,0,0,.12);
+button,
+input,
+select,
+textarea{
+  font-family:inherit;
 }
 
-.header-inner{
-  max-width:1200px;
+button{
+  cursor:pointer;
+}
+
+.container{
+  width:min(1200px,94%);
   margin:auto;
 }
 
-header h1{
+header{
+  background:linear-gradient(135deg,#111827,#312e81);
+  color:white;
+  padding:35px 0;
+  margin-bottom:25px;
+}
+
+.header-content{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+}
+
+.logo h1{
   margin:0 0 8px;
   font-size:32px;
 }
 
-header p{
+.logo p{
   margin:0;
-  opacity:.9;
+  opacity:.85;
 }
 
-main{
-  max-width:1200px;
-  margin:auto;
-  padding:25px 18px;
+.status{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);
+  padding:12px 18px;
+  border-radius:12px;
 }
 
-section{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:22px;
-  margin-bottom:22px;
-  box-shadow:0 5px 18px rgba(15,23,42,.05);
+.status-dot{
+  color:#22c55e;
 }
-
-h2{
-  margin-top:0;
-}
-
-h3{
-  margin-top:0;
-}
-
-.muted{
-  color:var(--muted);
-}
-
-/* =========================
-   الإحصائيات
-========================= */
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  grid-template-columns:repeat(5,1fr);
   gap:15px;
-  margin-top:20px;
+  margin-bottom:25px;
 }
 
 .stat{
-  background:#f8fafc;
+  background:var(--card);
   border:1px solid var(--border);
-  border-radius:15px;
-  padding:20px;
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 5px 18px rgba(15,23,42,.05);
 }
 
-.stat-title{
+.stat .label{
   color:var(--muted);
   font-size:14px;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 
-.stat-value{
+.stat .value{
   font-size:28px;
   font-weight:bold;
 }
 
-/* =========================
-   النماذج
-========================= */
+.section{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:25px;
+  margin-bottom:25px;
+  box-shadow:0 5px 18px rgba(15,23,42,.04);
+}
+
+.section-title{
+  margin:0 0 8px;
+  font-size:23px;
+}
+
+.section-subtitle{
+  margin:0 0 22px;
+  color:var(--muted);
+}
+
+.employees{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:14px;
+}
+
+.employee{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  background:#fafbff;
+  transition:.2s;
+}
+
+.employee:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(15,23,42,.07);
+}
+
+.employee-icon{
+  font-size:30px;
+  margin-bottom:10px;
+}
+
+.employee h3{
+  margin:0 0 7px;
+  font-size:17px;
+}
+
+.employee p{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+  margin:0;
+}
+
+.flow{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+}
+
+.flow-step{
+  text-align:center;
+  padding:15px 8px;
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+
+.flow-number{
+  width:30px;
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 8px;
+  border-radius:50%;
+  background:var(--secondary);
+  color:white;
+  font-weight:bold;
+}
+
+.flow-step strong{
+  display:block;
+  font-size:13px;
+  margin-bottom:5px;
+}
+
+.flow-step span{
+  color:var(--muted);
+  font-size:12px;
+}
 
 .form-grid{
   display:grid;
@@ -123,247 +210,89 @@ h3{
 }
 
 .field{
-  margin-bottom:5px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
 }
 
 .field.full{
   grid-column:1/-1;
 }
 
-label{
-  display:block;
-  margin-bottom:7px;
+.field label{
   font-weight:bold;
+  font-size:14px;
 }
 
-input,
-select,
-textarea{
+.field input,
+.field select,
+.field textarea{
   width:100%;
-  padding:13px;
   border:1px solid var(--border);
   border-radius:10px;
-  font-size:15px;
-  background:white;
-  color:var(--text);
-}
-
-input:focus,
-select:focus,
-textarea:focus{
+  padding:13px;
   outline:none;
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(99,102,241,.12);
+  background:white;
 }
 
-textarea{
-  min-height:110px;
+.field textarea{
+  min-height:120px;
   resize:vertical;
 }
 
-button{
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+  border-color:var(--accent);
+}
+
+.primary-btn{
   border:0;
-  border-radius:10px;
-  padding:12px 16px;
-  font-size:15px;
-  cursor:pointer;
-  transition:.2s;
-}
-
-button:hover{
-  transform:translateY(-1px);
-}
-
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-  transform:none;
-}
-
-.btn-primary{
-  background:var(--primary);
+  background:linear-gradient(135deg,#4f46e5,#312e81);
   color:white;
-}
-
-.btn-secondary{
-  background:#eef2ff;
-  color:#3730a3;
-}
-
-.btn-success{
-  background:#dcfce7;
-  color:#166534;
-}
-
-.btn-warning{
-  background:#fef3c7;
-  color:#92400e;
-}
-
-.btn-danger{
-  background:#fee2e2;
-  color:#991b1b;
-}
-
-.btn-info{
-  background:#dbeafe;
-  color:#1d4ed8;
-}
-
-.form-actions{
-  margin-top:15px;
-}
-
-#result{
-  margin-top:15px;
-  padding:13px;
+  padding:13px 22px;
   border-radius:10px;
-  display:none;
+  font-weight:bold;
 }
 
-.success-message{
-  background:#dcfce7;
-  color:#166534;
+.primary-btn:hover{
+  opacity:.92;
 }
 
-.error-message{
-  background:#fee2e2;
-  color:#991b1b;
+.filters{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr auto;
+  gap:10px;
+  margin-bottom:20px;
 }
 
-/* =========================
-   موظفو AI
-========================= */
+.filters input,
+.filters select{
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+  background:white;
+}
 
-.ai-header{
+.orders{
   display:flex;
-  justify-content:space-between;
-  align-items:center;
+  flex-direction:column;
   gap:15px;
-  flex-wrap:wrap;
-}
-
-.ai-status{
-  background:#dcfce7;
-  color:#166534;
-  padding:8px 13px;
-  border-radius:20px;
-  font-size:13px;
-  font-weight:bold;
-}
-
-.ai-team{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-  margin-top:18px;
-}
-
-.ai-card{
-  border:1px solid var(--border);
-  border-radius:15px;
-  padding:18px;
-  background:#fafbff;
-  transition:.2s;
-}
-
-.ai-card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 8px 20px rgba(15,23,42,.08);
-}
-
-.ai-icon{
-  font-size:30px;
-  margin-bottom:8px;
-}
-
-.ai-card h3{
-  margin:7px 0;
-}
-
-.ai-card p{
-  color:var(--muted);
-  font-size:14px;
-  line-height:1.6;
-  margin-bottom:12px;
-}
-
-.ai-role{
-  display:inline-block;
-  padding:5px 9px;
-  border-radius:7px;
-  background:#eef2ff;
-  color:#4338ca;
-  font-size:12px;
-}
-
-/* =========================
-   مسار الطلب
-========================= */
-
-.workflow{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
-  gap:10px;
-  margin-top:20px;
-}
-
-.workflow-step{
-  text-align:center;
-  padding:18px 10px;
-  border-radius:13px;
-  background:#f8fafc;
-  border:1px solid var(--border);
-}
-
-.workflow-number{
-  width:34px;
-  height:34px;
-  line-height:34px;
-  margin:0 auto 8px;
-  border-radius:50%;
-  background:var(--accent);
-  color:white;
-  font-weight:bold;
-}
-
-.workflow-step strong{
-  display:block;
-  font-size:14px;
-}
-
-.workflow-step span{
-  display:block;
-  color:var(--muted);
-  font-size:12px;
-  margin-top:5px;
-}
-
-/* =========================
-   إدارة الطلبات
-========================= */
-
-.orders-toolbar{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr auto;
-  gap:10px;
-  margin-bottom:18px;
 }
 
 .order{
   border:1px solid var(--border);
   border-radius:15px;
-  padding:18px;
-  margin:12px 0;
-  background:#fff;
+  padding:20px;
+  background:white;
 }
 
 .order-top{
   display:flex;
   justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
+  align-items:flex-start;
+  gap:15px;
+  margin-bottom:14px;
 }
 
 .order-title{
@@ -371,33 +300,44 @@ button:disabled{
   font-weight:bold;
 }
 
+.badges{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
 .badge{
   display:inline-block;
-  padding:5px 9px;
-  border-radius:7px;
+  padding:6px 10px;
+  border-radius:20px;
   font-size:12px;
   font-weight:bold;
-  margin:2px;
 }
 
 .badge-new{
-  background:#e0e7ff;
-  color:#3730a3;
+  background:#dbeafe;
+  color:#1d4ed8;
 }
 
-.badge-progress{
+.badge-processing{
   background:#fef3c7;
   color:#92400e;
 }
 
+.badge-review{
+  background:#ede9fe;
+  color:#6d28d9;
+}
+
+.badge-delivered,
 .badge-completed{
   background:#dcfce7;
   color:#166534;
 }
 
-.badge-delivered{
-  background:#dbeafe;
-  color:#1d4ed8;
+.badge-cancelled{
+  background:#fee2e2;
+  color:#991b1b;
 }
 
 .badge-paid{
@@ -406,40 +346,57 @@ button:disabled{
 }
 
 .badge-unpaid{
-  background:#fee2e2;
-  color:#991b1b;
+  background:#f1f5f9;
+  color:#475569;
 }
 
 .order-info{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:10px;
-  margin:15px 0;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
   color:#475569;
+  font-size:14px;
+  margin-bottom:15px;
+}
+
+.description{
+  background:#f8fafc;
+  border-radius:10px;
+  padding:13px;
+  margin:12px 0;
+  line-height:1.8;
+}
+
+.ai-result{
+  background:#f5f3ff;
+  border:1px solid #ddd6fe;
+  border-radius:12px;
+  padding:16px;
+  margin:15px 0;
+  white-space:pre-wrap;
+  line-height:1.9;
+}
+
+.ai-header{
+  font-weight:bold;
+  color:#5b21b6;
+  margin-bottom:8px;
+}
+
+.employee-assigned{
+  background:#eef2ff;
+  border-radius:10px;
+  padding:10px;
+  margin-top:10px;
   font-size:14px;
 }
 
-.order-description{
-  background:#f8fafc;
-  padding:12px;
-  border-radius:10px;
-  margin:10px 0;
-  line-height:1.6;
-}
-
-.order-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:14px;
-}
-
-.order-actions button{
-  width:auto;
+.quality{
+  margin:12px 0;
 }
 
 .quality-bar{
-  height:8px;
+  height:9px;
   background:#e2e8f0;
   border-radius:20px;
   overflow:hidden;
@@ -449,95 +406,119 @@ button:disabled{
 .quality-fill{
   height:100%;
   background:#6366f1;
-  border-radius:20px;
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:15px;
+}
+
+.action-btn{
+  border:1px solid var(--border);
+  background:white;
+  color:var(--text);
+  padding:9px 13px;
+  border-radius:9px;
+  font-size:13px;
+}
+
+.action-btn:hover{
+  background:#f8fafc;
+}
+
+.ai-btn{
+  background:#4f46e5;
+  color:white;
+  border-color:#4f46e5;
+  font-weight:bold;
+}
+
+.ai-btn:hover{
+  background:#3730a3;
+}
+
+.success-btn{
+  background:#16a34a;
+  color:white;
+  border-color:#16a34a;
+}
+
+.danger-btn{
+  background:#fee2e2;
+  color:#991b1b;
+  border-color:#fecaca;
 }
 
 .empty{
   text-align:center;
-  padding:30px;
   color:var(--muted);
+  padding:40px 15px;
+}
+
+.message{
+  display:none;
+  padding:13px;
+  border-radius:10px;
+  margin-top:15px;
+}
+
+.message.success{
+  display:block;
+  background:#dcfce7;
+  color:#166534;
+}
+
+.message.error{
+  display:block;
+  background:#fee2e2;
+  color:#991b1b;
 }
 
 .loading{
-  text-align:center;
-  padding:20px;
-  color:var(--muted);
+  opacity:.7;
+  pointer-events:none;
 }
-
-/* =========================
-   مركز العمليات
-========================= */
-
-.control-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px;
-  margin-top:18px;
-}
-
-.control-card{
-  background:#f8fafc;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:16px;
-}
-
-.control-card strong{
-  display:block;
-  margin-bottom:7px;
-}
-
-/* =========================
-   الإشعارات
-========================= */
-
-.toast{
-  position:fixed;
-  left:20px;
-  bottom:20px;
-  max-width:350px;
-  padding:15px 18px;
-  border-radius:12px;
-  color:white;
-  background:#111827;
-  box-shadow:0 10px 30px rgba(0,0,0,.2);
-  display:none;
-  z-index:9999;
-}
-
-.toast.success{
-  background:#15803d;
-}
-
-.toast.error{
-  background:#b91c1c;
-}
-
-.toast.info{
-  background:#1d4ed8;
-}
-
-/* =========================
-   Footer
-========================= */
 
 footer{
   text-align:center;
-  padding:30px 15px;
+  padding:30px 0;
   color:var(--muted);
 }
 
-/* =========================
-   الجوال
-========================= */
-
-@media(max-width:700px){
-
-  header h1{
-    font-size:25px;
+@media(max-width:1000px){
+  .stats{
+    grid-template-columns:repeat(3,1fr);
   }
 
-  .form-grid{
+  .employees{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .flow{
+    grid-template-columns:repeat(4,1fr);
+  }
+}
+
+@media(max-width:700px){
+  .header-content{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .stats,
+  .employees,
+  .form-grid,
+  .order-info{
+    grid-template-columns:1fr;
+  }
+
+  .flow{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .filters{
     grid-template-columns:1fr;
   }
 
@@ -545,581 +526,419 @@ footer{
     grid-column:auto;
   }
 
-  .orders-toolbar{
-    grid-template-columns:1fr;
+  .order-top{
+    flex-direction:column;
   }
-
-  section{
-    padding:17px;
-  }
-
-  .order-actions button{
-    width:100%;
-  }
-
-  .stats{
-    grid-template-columns:1fr 1fr;
-  }
-
 }
-
 </style>
 </head>
 
 <body>
 
 <header>
+  <div class="container header-content">
+    <div class="logo">
+      <h1>AI OFFICE 🚀</h1>
+      <p>نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي</p>
+    </div>
 
-<div class="header-inner">
-
-<h1>AI OFFICE 🚀</h1>
-
-<p>
-نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي
-</p>
-
-</div>
-
+    <div class="status">
+      <span class="status-dot">●</span>
+      النظام متصل
+    </div>
+  </div>
 </header>
 
-<main>
+<main class="container">
+
+  <!-- الإحصائيات -->
+  <section class="stats">
+
+    <div class="stat">
+      <div class="label">إجمالي الطلبات</div>
+      <div class="value" id="totalOrders">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="label">الإيرادات</div>
+      <div class="value" id="revenue">٠ ريال</div>
+    </div>
+
+    <div class="stat">
+      <div class="label">الطلبات المدفوعة</div>
+      <div class="value" id="paidOrders">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="label">تم التسليم</div>
+      <div class="value" id="deliveredOrders">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="label">متوسط الجودة</div>
+      <div class="value" id="averageQuality">0%</div>
+    </div>
+
+  </section>
+
+
+  <!-- موظفو AI -->
+  <section class="section">
+
+    <h2 class="section-title">🤖 مركز موظفي AI</h2>
+
+    <p class="section-subtitle">
+      فريق الذكاء الاصطناعي المسؤول عن تنفيذ الطلبات ومراجعتها.
+    </p>
+
+    <div class="employees">
+
+      <div class="employee">
+        <div class="employee-icon">🧠</div>
+        <h3>Orchestrator AI</h3>
+        <p>يستقبل الطلب ويحلله ويوجهه إلى الموظف المناسب.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">📝</div>
+        <h3>Letters AI</h3>
+        <p>إنشاء الخطابات الرسمية والمراسلات الإدارية.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">📊</div>
+        <h3>Reports AI</h3>
+        <p>إعداد التقارير المهنية وتنظيم المعلومات والنتائج.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">📈</div>
+        <h3>Data AI</h3>
+        <p>تحليل البيانات واستخراج المؤشرات والنتائج المهمة.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">🗓️</div>
+        <h3>Meetings AI</h3>
+        <p>تنظيم محاضر الاجتماعات واستخراج القرارات والمهام.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">💰</div>
+        <h3>Finance AI</h3>
+        <p>المساعدة في إعداد الحسابات والتقارير المالية.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">📣</div>
+        <h3>Sales AI</h3>
+        <p>دعم المبيعات والتسويق وتحليل فرص العملاء.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">⚙️</div>
+        <h3>Operations AI</h3>
+        <p>تنظيم العمليات ومتابعة تنفيذ الخدمات والمهام.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">🔍</div>
+        <h3>Quality AI</h3>
+        <p>مراجعة جودة المخرجات قبل التسليم للعميل.</p>
+      </div>
+
+      <div class="employee">
+        <div class="employee-icon">🤝</div>
+        <h3>Customer Success AI</h3>
+        <p>متابعة العملاء وتحسين تجربة العميل بعد الطلب.</p>
+      </div>
 
-<!-- =========================
-     الترحيب والإحصائيات
-========================= -->
+    </div>
 
-<section>
+  </section>
 
-<h2>مرحبًا بك في AI OFFICE</h2>
-
-<p>
-مكتبك الرقمي لإدارة الطلبات والخدمات والعمليات باستخدام الذكاء الاصطناعي.
-</p>
-
-<div class="stats">
-
-<div class="stat">
-<div class="stat-title">إجمالي الطلبات</div>
-<div class="stat-value" id="totalOrders">0</div>
-</div>
-
-<div class="stat">
-<div class="stat-title">الإيرادات</div>
-<div class="stat-value">
-<span id="revenue">0</span> ريال
-</div>
-</div>
-
-<div class="stat">
-<div class="stat-title">الطلبات المدفوعة</div>
-<div class="stat-value" id="paidOrders">0</div>
-</div>
-
-<div class="stat">
-<div class="stat-title">تم التسليم</div>
-<div class="stat-value" id="deliveredOrders">0</div>
-</div>
-
-<div class="stat">
-<div class="stat-title">متوسط الجودة</div>
-<div class="stat-value">
-<span id="averageQuality">0</span>%
-</div>
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================
-     موظفو AI
-========================= -->
-
-<section>
-
-<div class="ai-header">
-
-<div>
-
-<h2>🤖 مركز موظفي AI</h2>
-
-<p class="muted">
-فريق الذكاء الاصطناعي المسؤول عن تنفيذ الطلبات ومراجعتها.
-</p>
-
-</div>
-
-<div class="ai-status">
-● النظام جاهز
-</div>
-
-</div>
-
-<div class="ai-team">
-
-<div class="ai-card">
-<div class="ai-icon">🧠</div>
-<h3>Orchestrator AI</h3>
-<p>
-يستقبل الطلب ويحلله ويوجهه إلى الموظف المناسب.
-</p>
-<span class="ai-role">إدارة وتوجيه الطلبات</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">📝</div>
-<h3>Letters AI</h3>
-<p>
-إنشاء الخطابات الرسمية والمراسلات الإدارية.
-</p>
-<span class="ai-role">الخطابات</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">📊</div>
-<h3>Reports AI</h3>
-<p>
-إعداد التقارير المهنية وتنظيم المعلومات والنتائج.
-</p>
-<span class="ai-role">التقارير</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">📈</div>
-<h3>Data AI</h3>
-<p>
-تحليل البيانات واستخراج المؤشرات والنتائج المهمة.
-</p>
-<span class="ai-role">تحليل البيانات</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">🗓️</div>
-<h3>Meetings AI</h3>
-<p>
-تنظيم محاضر الاجتماعات واستخراج القرارات والمهام.
-</p>
-<span class="ai-role">الاجتماعات</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">💰</div>
-<h3>Finance AI</h3>
-<p>
-المساعدة في إعداد الحسابات والتقارير المالية.
-</p>
-<span class="ai-role">المالية</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">📣</div>
-<h3>Sales AI</h3>
-<p>
-دعم المبيعات والتسويق وتحليل فرص العملاء.
-</p>
-<span class="ai-role">المبيعات</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">⚙️</div>
-<h3>Operations AI</h3>
-<p>
-تنظيم العمليات ومتابعة تنفيذ الخدمات والمهام.
-</p>
-<span class="ai-role">العمليات</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">🔍</div>
-<h3>Quality AI</h3>
-<p>
-مراجعة جودة المخرجات قبل التسليم للعميل.
-</p>
-<span class="ai-role">الجودة</span>
-</div>
-
-<div class="ai-card">
-<div class="ai-icon">🤝</div>
-<h3>Customer Success AI</h3>
-<p>
-متابعة العملاء وتحسين تجربة العميل بعد الطلب.
-</p>
-<span class="ai-role">خدمة العملاء</span>
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================
-     مسار الطلب
-========================= -->
-
-<section>
-
-<h2>🔄 مسار تنفيذ الطلب</h2>
-
-<p class="muted">
-من لحظة إنشاء الطلب حتى التسليم والإغلاق.
-</p>
-
-<div class="workflow">
-
-<div class="workflow-step">
-<div class="workflow-number">1</div>
-<strong>العميل</strong>
-<span>إنشاء الطلب</span>
-</div>
-
-<div class="workflow-step">
-<div class="workflow-number">2</div>
-<strong>Orchestrator AI</strong>
-<span>تحليل وتوجيه</span>
-</div>
-
-<div class="workflow-step">
-<div class="workflow-number">3</div>
-<strong>موظف AI</strong>
-<span>تنفيذ الخدمة</span>
-</div>
-
-<div class="workflow-step">
-<div class="workflow-number">4</div>
-<strong>Operations AI</strong>
-<span>متابعة التنفيذ</span>
-</div>
-
-<div class="workflow-step">
-<div class="workflow-number">5</div>
-<strong>Quality AI</strong>
-<span>مراجعة الجودة</span>
-</div>
-
-<div class="workflow-step">
-<div class="workflow-number">6</div>
-<strong>التسليم</strong>
-<span>إرسال النتيجة</span>
-</div>
-
-<div class="workflow-step">
-<div class="workflow-number">7</div>
-<strong>الإغلاق</strong>
-<span>إتمام الطلب</span>
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =========================
-     إنشاء طلب
-========================= -->
-
-<section>
-
-<h2>➕ إنشاء طلب جديد</h2>
-
-<form id="orderForm">
-
-<div class="form-grid">
-
-<div class="field">
-
-<label for="customerName">
-اسم العميل
-</label>
-
-<input
-id="customerName"
-name="customerName"
-type="text"
-placeholder="أدخل اسم العميل"
-required
->
-
-</div>
-
-<div class="field">
-
-<label for="customerEmail">
-البريد الإلكتروني
-</label>
-
-<input
-id="customerEmail"
-name="customerEmail"
-type="email"
-placeholder="example@email.com"
-required
->
-
-</div>
-
-<div class="field">
-
-<label for="service">
-الخدمة
-</label>
 
-<select
-id="service"
-name="service"
-required
->
+  <!-- مسار التنفيذ -->
+  <section class="section">
 
-<option value="">
-اختر الخدمة
-</option>
+    <h2 class="section-title">🔄 مسار تنفيذ الطلب</h2>
 
-<option value="إعداد تقرير">
-📊 إعداد تقرير
-</option>
+    <p class="section-subtitle">
+      من لحظة إنشاء الطلب حتى التسليم والإغلاق.
+    </p>
 
-<option value="تحليل بيانات">
-📈 تحليل بيانات
-</option>
+    <div class="flow">
 
-<option value="خطاب رسمي">
-📝 خطاب رسمي
-</option>
+      <div class="flow-step">
+        <div class="flow-number">1</div>
+        <strong>العميل</strong>
+        <span>إنشاء الطلب</span>
+      </div>
 
-<option value="خدمة إدارية">
-⚙️ خدمة إدارية
-</option>
+      <div class="flow-step">
+        <div class="flow-number">2</div>
+        <strong>Orchestrator AI</strong>
+        <span>تحليل وتوجيه</span>
+      </div>
 
-<option value="خدمة ذكاء اصطناعي">
-🤖 خدمة ذكاء اصطناعي
-</option>
+      <div class="flow-step">
+        <div class="flow-number">3</div>
+        <strong>موظف AI</strong>
+        <span>تنفيذ الخدمة</span>
+      </div>
 
-</select>
+      <div class="flow-step">
+        <div class="flow-number">4</div>
+        <strong>Operations AI</strong>
+        <span>متابعة التنفيذ</span>
+      </div>
 
-</div>
+      <div class="flow-step">
+        <div class="flow-number">5</div>
+        <strong>Quality AI</strong>
+        <span>مراجعة الجودة</span>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-number">6</div>
+        <strong>التسليم</strong>
+        <span>إرسال النتيجة</span>
+      </div>
 
-<div class="field">
+      <div class="flow-step">
+        <div class="flow-number">7</div>
+        <strong>الإغلاق</strong>
+        <span>إتمام الطلب</span>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- إنشاء طلب -->
+  <section class="section">
+
+    <h2 class="section-title">➕ إنشاء طلب جديد</h2>
+
+    <p class="section-subtitle">
+      أنشئ طلبًا جديدًا ليتم تنفيذه بواسطة فريق AI OFFICE.
+    </p>
+
+    <form id="orderForm">
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>اسم العميل</label>
+          <input
+            id="customerName"
+            required
+            placeholder="مثال: محمد"
+          >
+        </div>
 
-<label for="price">
-السعر بالريال
-</label>
+        <div class="field">
+          <label>البريد الإلكتروني</label>
+          <input
+            id="customerEmail"
+            type="email"
+            required
+            placeholder="example@email.com"
+          >
+        </div>
 
-<input
-id="price"
-name="price"
-type="number"
-min="0"
-step="0.01"
-placeholder="0"
->
+        <div class="field">
+          <label>الخدمة</label>
 
-</div>
+          <select id="service" required>
 
-<div class="field full">
+            <option value="">اختر الخدمة</option>
 
-<label for="description">
-وصف الطلب
-</label>
+            <option value="إعداد تقرير">
+              📊 إعداد تقرير
+            </option>
 
-<textarea
-id="description"
-name="description"
-placeholder="اكتب تفاصيل الطلب هنا..."
-></textarea>
+            <option value="تحليل بيانات">
+              📈 تحليل بيانات
+            </option>
 
-</div>
+            <option value="خطاب رسمي">
+              📝 خطاب رسمي
+            </option>
 
-</div>
+            <option value="خدمة إدارية">
+              ⚙️ خدمة إدارية
+            </option>
 
-<div class="form-actions">
+            <option value="خدمة ذكاء اصطناعي">
+              🤖 خدمة ذكاء اصطناعي
+            </option>
 
-<button
-type="submit"
-class="btn-primary"
-id="submitOrderBtn"
->
-إنشاء الطلب
-</button>
+            <option value="مبيعات وتسويق">
+              📣 مبيعات وتسويق
+            </option>
 
-</div>
+            <option value="خدمة مالية">
+              💰 خدمة مالية
+            </option>
 
-</form>
+            <option value="اجتماعات">
+              🗓️ اجتماعات
+            </option>
 
-<div id="result"></div>
+          </select>
+        </div>
 
-</section>
+        <div class="field">
+          <label>السعر بالريال</label>
+          <input
+            id="price"
+            type="number"
+            min="0"
+            value="0"
+            placeholder="0"
+          >
+        </div>
 
+        <div class="field full">
+          <label>وصف الطلب</label>
 
-<!-- =========================
-     إدارة الطلبات
-========================= -->
+          <textarea
+            id="description"
+            required
+            placeholder="اكتب طلب العميل بالتفصيل..."
+          ></textarea>
+        </div>
 
-<section>
+        <div class="field full">
+          <button
+            type="submit"
+            class="primary-btn"
+            id="createBtn"
+          >
+            ➕ إنشاء الطلب
+          </button>
+        </div>
 
-<div class="ai-header">
+      </div>
 
-<div>
+      <div id="formMessage" class="message"></div>
 
-<h2>📋 إدارة الطلبات</h2>
+    </form>
 
-<p class="muted">
-تابع الطلبات وغيّر الحالة والدفع والجودة.
-</p>
+  </section>
 
-</div>
 
-<button
-class="btn-secondary"
-onclick="loadAll()"
->
-🔄 تحديث
-</button>
+  <!-- إدارة الطلبات -->
+  <section class="section">
 
-</div>
+    <h2 class="section-title">📋 إدارة الطلبات</h2>
 
-<div class="orders-toolbar">
+    <p class="section-subtitle">
+      تابع الطلبات ونفّذها بالذكاء الاصطناعي وغيّر الحالة والدفع والجودة.
+    </p>
 
-<input
-id="searchInput"
-type="search"
-placeholder="🔎 البحث..."
-oninput="renderOrders()"
->
+    <div class="filters">
 
-<select
-id="statusFilter"
-onchange="renderOrders()"
->
+      <input
+        id="search"
+        placeholder="🔎 البحث عن طلب..."
+      >
 
-<option value="">
-كل الحالات
-</option>
+      <select id="statusFilter">
 
-<option value="new">
-جديد
-</option>
+        <option value="">كل الحالات</option>
+        <option value="new">جديد</option>
+        <option value="processing">قيد التنفيذ</option>
+        <option value="review">مراجعة</option>
+        <option value="completed">مكتمل</option>
+        <option value="delivered">تم التسليم</option>
+        <option value="cancelled">ملغي</option>
 
-<option value="in_progress">
-قيد التنفيذ
-</option>
+      </select>
 
-<option value="completed">
-مكتمل
-</option>
+      <select id="paymentFilter">
 
-<option value="delivered">
-تم التسليم
-</option>
+        <option value="">كل المدفوعات</option>
+        <option value="paid">مدفوع</option>
+        <option value="unpaid">غير مدفوع</option>
+        <option value="pending">معلق</option>
+        <option value="refunded">مسترد</option>
 
-</select>
+      </select>
 
-<select
-id="paymentFilter"
-onchange="renderOrders()"
->
+      <button
+        class="primary-btn"
+        onclick="loadOrders()"
+      >
+        🔄 تحديث
+      </button>
 
-<option value="">
-كل المدفوعات
-</option>
+    </div>
 
-<option value="paid">
-مدفوع
-</option>
+    <div id="ordersContainer" class="orders">
 
-<option value="unpaid">
-غير مدفوع
-</option>
+      <div class="empty">
+        جاري تحميل الطلبات...
+      </div>
 
-</select>
+    </div>
 
-<button
-class="btn-secondary"
-onclick="loadAll()"
->
-تحديث
-</button>
+  </section>
 
-</div>
 
-<div id="ordersContainer">
+  <!-- مركز العمليات -->
+  <section class="section">
 
-<div class="loading">
-جاري تحميل الطلبات...
-</div>
+    <h2 class="section-title">⚙️ مركز العمليات</h2>
 
-</div>
+    <p class="section-subtitle">
+      نظرة سريعة على دورة تشغيل AI OFFICE.
+    </p>
 
-</section>
+    <div class="order-info">
 
+      <div>
+        <strong>🧠 التوجيه</strong><br>
+        Orchestrator AI يحدد الموظف المناسب لكل طلب.
+      </div>
 
-<!-- =========================
-     مركز العمليات
-========================= -->
+      <div>
+        <strong>⚙️ التنفيذ</strong><br>
+        موظفو AI ينفذون الخدمات حسب نوع الطلب.
+      </div>
 
-<section>
+      <div>
+        <strong>🔍 الجودة</strong><br>
+        Quality AI يراجع النتيجة قبل التسليم.
+      </div>
 
-<h2>⚙️ مركز العمليات</h2>
+      <div>
+        <strong>🤝 العميل</strong><br>
+        Customer Success AI يتابع تجربة العميل.
+      </div>
 
-<p class="muted">
-نظرة سريعة على دورة تشغيل AI OFFICE.
-</p>
+    </div>
 
-<div class="control-grid">
-
-<div class="control-card">
-<strong>🧠 التوجيه</strong>
-<span class="muted">
-Orchestrator AI يحدد الموظف المناسب لكل طلب.
-</span>
-</div>
-
-<div class="control-card">
-<strong>⚙️ التنفيذ</strong>
-<span class="muted">
-موظفو AI ينفذون الخدمات حسب نوع الطلب.
-</span>
-</div>
-
-<div class="control-card">
-<strong>🔍 الجودة</strong>
-<span class="muted">
-Quality AI يراجع النتيجة قبل التسليم.
-</span>
-</div>
-
-<div class="control-card">
-<strong>🤝 العميل</strong>
-<span class="muted">
-Customer Success AI يتابع تجربة العميل.
-</span>
-</div>
-
-</div>
-
-</section>
+  </section>
 
 </main>
 
 
 <footer>
-
-AI OFFICE © 2026 —
-نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي
-
+  AI OFFICE © 2026 — نظام إدارة الأعمال والخدمات الرقمية بالذكاء الاصطناعي
 </footer>
-
-
-<div id="toast" class="toast"></div>
 
 
 <script>
 
-let orders = [];
+const $ = (id) => document.getElementById(id);
 
 
-/* =========================
-   حماية HTML
-========================= */
+/* =====================================================
+   أدوات عامة
+===================================================== */
 
 function escapeHtml(value){
 
@@ -1133,102 +952,98 @@ function escapeHtml(value){
 }
 
 
-/* =========================
-   الإشعارات
-========================= */
+function formatDate(date){
 
-function showToast(message,type="success"){
+  if(!date) return "-";
 
-  const toast =
-    document.getElementById("toast");
+  try{
 
-  toast.textContent = message;
+    return new Date(date).toLocaleString(
+      "ar-SA",
+      {
+        dateStyle:"medium",
+        timeStyle:"medium"
+      }
+    );
 
-  toast.className =
-    "toast " + type;
+  }catch{
 
-  toast.style.display = "block";
+    return date;
 
-  setTimeout(() => {
-
-    toast.style.display = "none";
-
-  },3000);
+  }
 
 }
 
 
-function showResult(message,type="success"){
+function formatNumber(number){
 
-  const result =
-    document.getElementById("result");
-
-  result.textContent = message;
-
-  result.className =
-    type === "error"
-      ? "error-message"
-      : "success-message";
-
-  result.style.display = "block";
+  return Number(number || 0).toLocaleString("ar-SA");
 
 }
 
-
-/* =========================
-   أسماء الحالات
-========================= */
 
 function statusText(status){
 
   const map = {
 
     new:"جديد",
-
-    in_progress:"قيد التنفيذ",
-
+    processing:"قيد التنفيذ",
+    review:"مراجعة",
     completed:"مكتمل",
-
-    delivered:"تم التسليم"
+    delivered:"تم التسليم",
+    cancelled:"ملغي"
 
   };
 
-  return map[status] || status || "غير محدد";
-
-}
-
-
-function paymentText(status){
-
-  return status === "paid"
-    ? "مدفوع"
-    : "غير مدفوع";
+  return map[status] || status || "-";
 
 }
 
 
 function statusClass(status){
 
-  if(status === "new")
-    return "badge-new";
+  return {
 
-  if(status === "in_progress")
-    return "badge-progress";
+    new:"badge-new",
+    processing:"badge-processing",
+    review:"badge-review",
+    completed:"badge-completed",
+    delivered:"badge-delivered",
+    cancelled:"badge-cancelled"
 
-  if(status === "completed")
-    return "badge-completed";
-
-  if(status === "delivered")
-    return "badge-delivered";
-
-  return "badge-new";
+  }[status] || "badge-new";
 
 }
 
 
-/* =========================
-   تحميل لوحة البيانات
-========================= */
+function paymentText(status){
+
+  const map = {
+
+    paid:"مدفوع",
+    unpaid:"غير مدفوع",
+    pending:"معلق",
+    refunded:"مسترد"
+
+  };
+
+  return map[status] || status || "-";
+
+}
+
+
+function paymentClass(status){
+
+  return status === "paid"
+    ? "badge-paid"
+    : "badge-unpaid";
+
+}
+
+
+/* =====================================================
+   Dashboard
+===================================================== */
 
 async function loadDashboard(){
 
@@ -1237,36 +1052,25 @@ async function loadDashboard(){
     const response =
       await fetch("/api/dashboard");
 
-    if(!response.ok){
-      throw new Error("Dashboard request failed");
-    }
-
     const data =
       await response.json();
 
-    if(!data.success)
-      return;
+    if(!data.success) return;
 
-    document.getElementById("totalOrders")
-      .textContent =
-      data.totalOrders ?? 0;
+    $("totalOrders").textContent =
+      formatNumber(data.totalOrders);
 
-    document.getElementById("revenue")
-      .textContent =
-      Number(data.revenue || 0)
-        .toLocaleString("ar-SA");
+    $("revenue").textContent =
+      `${formatNumber(data.revenue)} ريال`;
 
-    document.getElementById("paidOrders")
-      .textContent =
-      data.paidOrders ?? 0;
+    $("paidOrders").textContent =
+      formatNumber(data.paidOrders);
 
-    document.getElementById("deliveredOrders")
-      .textContent =
-      data.deliveredOrders ?? 0;
+    $("deliveredOrders").textContent =
+      formatNumber(data.deliveredOrders);
 
-    document.getElementById("averageQuality")
-      .textContent =
-      data.averageQuality ?? 0;
+    $("averageQuality").textContent =
+      `${formatNumber(data.averageQuality)}%`;
 
   }catch(error){
 
@@ -1280,28 +1084,45 @@ async function loadDashboard(){
 }
 
 
-/* =========================
-   تحميل الطلبات
-========================= */
+/* =====================================================
+   جلب الطلبات
+===================================================== */
 
 async function loadOrders(){
 
   const container =
-    document.getElementById(
-      "ordersContainer"
-    );
+    $("ordersContainer");
 
   container.innerHTML =
-    '<div class="loading">جاري تحميل الطلبات...</div>';
+    `<div class="empty">جاري تحميل الطلبات...</div>`;
 
   try{
 
-    const response =
-      await fetch("/api/orders");
+    const params =
+      new URLSearchParams();
 
-    if(!response.ok){
-      throw new Error("Orders request failed");
-    }
+    const search =
+      $("search").value.trim();
+
+    const status =
+      $("statusFilter").value;
+
+    const payment =
+      $("paymentFilter").value;
+
+    if(search)
+      params.set("search",search);
+
+    if(status)
+      params.set("status",status);
+
+    if(payment)
+      params.set("paymentStatus",payment);
+
+    const response =
+      await fetch(
+        `/api/orders?${params.toString()}`
+      );
 
     const data =
       await response.json();
@@ -1309,491 +1130,307 @@ async function loadOrders(){
     if(!data.success){
 
       throw new Error(
-        data.message ||
-        "تعذر تحميل الطلبات"
+        data.message || "فشل تحميل الطلبات"
       );
 
     }
 
-    orders =
-      Array.isArray(data.orders)
-        ? data.orders
-        : [];
-
-    renderOrders();
+    renderOrders(data.orders || []);
 
   }catch(error){
 
-    console.error(
-      "Orders error:",
-      error
-    );
+    console.error(error);
 
     container.innerHTML =
-      '<div class="empty">تعذر تحميل الطلبات.</div>';
+      `<div class="empty">❌ تعذر تحميل الطلبات: ${escapeHtml(error.message)}</div>`;
 
   }
 
 }
 
 
-/* =========================
-   تحميل كل شيء
-========================= */
-
-async function loadAll(){
-
-  await Promise.all([
-    loadDashboard(),
-    loadOrders()
-  ]);
-
-}
-
-
-/* =========================
+/* =====================================================
    عرض الطلبات
-========================= */
+===================================================== */
 
-function renderOrders(){
+function renderOrders(orders){
 
   const container =
-    document.getElementById(
-      "ordersContainer"
-    );
+    $("ordersContainer");
 
-  const search =
-    (
-      document.getElementById(
-        "searchInput"
-      ).value || ""
-    ).trim().toLowerCase();
-
-  const statusFilter =
-    document.getElementById(
-      "statusFilter"
-    ).value;
-
-  const paymentFilter =
-    document.getElementById(
-      "paymentFilter"
-    ).value;
-
-
-  const filtered =
-    orders.filter(order => {
-
-      const searchable = [
-
-        order.customerName,
-
-        order.customerEmail,
-
-        order.service,
-
-        order.description,
-
-        order.id
-
-      ]
-      .join(" ")
-      .toLowerCase();
-
-
-      const matchesSearch =
-        !search ||
-        searchable.includes(search);
-
-
-      const matchesStatus =
-        !statusFilter ||
-        order.status === statusFilter;
-
-
-      const matchesPayment =
-        !paymentFilter ||
-        order.paymentStatus === paymentFilter;
-
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPayment
-      );
-
-    });
-
-
-  if(filtered.length === 0){
+  if(!orders.length){
 
     container.innerHTML =
-      '<div class="empty">لا توجد طلبات مطابقة.</div>';
+      `<div class="empty">لا توجد طلبات مطابقة.</div>`;
 
     return;
 
   }
 
-
   container.innerHTML =
-    filtered.map(order =>
-      orderHtml(order)
-    ).join("");
+    orders
+      .map(order => renderOrder(order))
+      .join("");
 
 }
 
 
-/* =========================
-   بطاقة الطلب
-========================= */
-
-function orderHtml(order){
+function renderOrder(order){
 
   const quality =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        Number(order.quality || 0)
-      )
-    );
+    Number(order.quality || 0);
 
+  const hasAIResult =
+    order.aiResult &&
+    String(order.aiResult).trim();
 
-  const created =
-    order.createdAt
-      ? new Date(order.createdAt)
-          .toLocaleString("ar-SA")
-      : "-";
-
+  const employee =
+    order.assignedEmployee || "لم يتم التوجيه بعد";
 
   return `
 
-  <div class="order">
+    <article class="order">
 
-    <div class="order-top">
+      <div class="order-top">
 
-      <div>
+        <div>
 
-        <div class="order-title">
-          طلب #${escapeHtml(order.id)}
-        </div>
+          <div class="order-title">
+            طلب #${escapeHtml(order.id)}
+          </div>
 
-        <div style="margin-top:6px;">
-          <strong>
+          <div style="margin-top:7px;font-weight:bold;">
             ${escapeHtml(order.customerName)}
-          </strong>
+          </div>
+
+        </div>
+
+        <div class="badges">
+
+          <span class="badge ${statusClass(order.status)}">
+            ${escapeHtml(statusText(order.status))}
+          </span>
+
+          <span class="badge ${paymentClass(order.paymentStatus)}">
+            ${escapeHtml(paymentText(order.paymentStatus))}
+          </span>
+
         </div>
 
       </div>
 
-      <div>
 
-        <span class="badge ${statusClass(order.status)}">
-          ${escapeHtml(statusText(order.status))}
-        </span>
+      <div class="order-info">
 
-        <span class="badge ${
-          order.paymentStatus === "paid"
-            ? "badge-paid"
-            : "badge-unpaid"
-        }">
-          ${escapeHtml(paymentText(order.paymentStatus))}
-        </span>
+        <div>
+          📧 ${escapeHtml(order.customerEmail)}
+        </div>
+
+        <div>
+          🛠️ الخدمة: ${escapeHtml(order.service)}
+        </div>
+
+        <div>
+          💰 السعر: ${formatNumber(order.price)} ريال
+        </div>
+
+        <div>
+          📅 ${escapeHtml(formatDate(order.createdAt))}
+        </div>
 
       </div>
 
-    </div>
 
-
-    <div class="order-info">
-
-      <div>
-        📧
-        ${escapeHtml(order.customerEmail)}
+      <div class="description">
+        📝 ${escapeHtml(order.description)}
       </div>
 
-      <div>
-        🛠️ الخدمة:
-        ${escapeHtml(order.service)}
+
+      <div class="employee-assigned">
+        👤 الموظف المسؤول:
+        <strong>${escapeHtml(employee)}</strong>
       </div>
 
-      <div>
-        💰 السعر:
-        ${Number(order.price || 0)
-          .toLocaleString("ar-SA")}
-        ريال
-      </div>
 
-      <div>
-        📅 ${escapeHtml(created)}
-      </div>
+      ${
+        hasAIResult
+        ?
+        `
+        <div class="ai-result">
 
-    </div>
+          <div class="ai-header">
+            🤖 نتيجة تنفيذ AI
+          </div>
 
+          ${escapeHtml(order.aiResult)}
 
-    ${
-      order.description
-        ? `
-        <div class="order-description">
-          📝 ${escapeHtml(order.description)}
         </div>
         `
-        : ""
-    }
+        :
+        ""
+      }
 
 
-    <div>
+      <div class="quality">
 
-      <strong>
-        ⭐ الجودة: ${quality}%
-      </strong>
+        <strong>⭐ الجودة: ${quality}%</strong>
 
-      <div class="quality-bar">
+        <div class="quality-bar">
 
-        <div
-          class="quality-fill"
-          style="width:${quality}%"
-        ></div>
+          <div
+            class="quality-fill"
+            style="width:${quality}%"
+          ></div>
+
+        </div>
 
       </div>
 
-    </div>
 
+      <div class="actions">
 
-    <div class="order-actions">
-
-      <button
-        class="btn-secondary"
-        onclick="changeStatus('${escapeHtml(order.id)}')"
-      >
-        🔄 تغيير الحالة
-      </button>
-
-
-      <button
-        class="btn-success"
-        onclick="togglePayment('${escapeHtml(order.id)}')"
-      >
         ${
-          order.paymentStatus === "paid"
-            ? "💳 إلغاء الدفع"
-            : "💳 تحديد مدفوع"
+          order.status !== "processing" &&
+          order.status !== "delivered" &&
+          order.status !== "completed"
+          ?
+          `
+          <button
+            class="action-btn ai-btn"
+            onclick="executeAI('${escapeHtml(order.id)}')"
+          >
+            🤖 تنفيذ بواسطة AI
+          </button>
+          `
+          :
+          ""
         }
-      </button>
 
 
-      <button
-        class="btn-warning"
-        onclick="changeQuality('${escapeHtml(order.id)}')"
-      >
-        ⭐ الجودة
-      </button>
+        <button
+          class="action-btn"
+          onclick="changeStatus('${escapeHtml(order.id)}')"
+        >
+          🔄 تغيير الحالة
+        </button>
 
 
-      <button
-        class="btn-info"
-        onclick="showOrderDetails('${escapeHtml(order.id)}')"
-      >
-        👁️ التفاصيل
-      </button>
+        ${
+          order.paymentStatus !== "paid"
+          ?
+          `
+          <button
+            class="action-btn success-btn"
+            onclick="setPaid('${escapeHtml(order.id)}')"
+          >
+            💳 تحديد مدفوع
+          </button>
+          `
+          :
+          `
+          <button
+            class="action-btn"
+            onclick="setUnpaid('${escapeHtml(order.id)}')"
+          >
+            💳 إلغاء الدفع
+          </button>
+          `
+        }
 
 
-      <button
-        class="btn-danger"
-        onclick="deleteOrder('${escapeHtml(order.id)}')"
-      >
-        🗑️ حذف
-      </button>
+        <button
+          class="action-btn"
+          onclick="setQuality('${escapeHtml(order.id)}')"
+        >
+          ⭐ الجودة
+        </button>
 
-    </div>
 
-  </div>
+        ${
+          hasAIResult
+          ?
+          `
+          <button
+            class="action-btn"
+            onclick="showResult('${escapeHtml(order.id)}')"
+          >
+            👁️ عرض النتيجة
+          </button>
+          `
+          :
+          ""
+        }
+
+
+        ${
+          order.status === "review"
+          ?
+          `
+          <button
+            class="action-btn success-btn"
+            onclick="deliverOrder('${escapeHtml(order.id)}')"
+          >
+            📦 تسليم الطلب
+          </button>
+          `
+          :
+          ""
+        }
+
+
+        <button
+          class="action-btn danger-btn"
+          onclick="deleteOrder('${escapeHtml(order.id)}')"
+        >
+          🗑️ حذف
+        </button>
+
+      </div>
+
+    </article>
 
   `;
 
 }
 
 
-/* =========================
-   تغيير الحالة
-========================= */
+/* =====================================================
+   تنفيذ AI
+===================================================== */
 
-async function changeStatus(id){
+async function executeAI(id){
 
-  const order =
-    orders.find(
-      item =>
-        String(item.id) === String(id)
+  const confirmed =
+    confirm(
+      "هل تريد تنفيذ هذا الطلب بواسطة الذكاء الاصطناعي؟"
     );
 
-  if(!order)
-    return;
-
-
-  const statuses = [
-    ["new","جديد"],
-    ["in_progress","قيد التنفيذ"],
-    ["completed","مكتمل"],
-    ["delivered","تم التسليم"]
-  ];
-
-
-  const currentIndex =
-    statuses.findIndex(
-      item =>
-        item[0] === order.status
-    );
-
-
-  const nextIndex =
-    (currentIndex + 1) %
-    statuses.length;
-
-
-  const nextStatus =
-    statuses[nextIndex][0];
-
-
-  await updateOrder(
-    id,
-    {
-      status:nextStatus
-    },
-    "تم تغيير حالة الطلب إلى " +
-      statuses[nextIndex][1]
-  );
-
-}
-
-
-/* =========================
-   الدفع
-========================= */
-
-async function togglePayment(id){
-
-  const order =
-    orders.find(
-      item =>
-        String(item.id) === String(id)
-    );
-
-  if(!order)
-    return;
-
-
-  const newStatus =
-    order.paymentStatus === "paid"
-      ? "unpaid"
-      : "paid";
-
-
-  await updateOrder(
-    id,
-    {
-      paymentStatus:newStatus
-    },
-    newStatus === "paid"
-      ? "تم تحديد الطلب كمدفوع"
-      : "تم إلغاء حالة الدفع"
-  );
-
-}
-
-
-/* =========================
-   الجودة
-========================= */
-
-async function changeQuality(id){
-
-  const order =
-    orders.find(
-      item =>
-        String(item.id) === String(id)
-    );
-
-  if(!order)
-    return;
-
-
-  const current =
-    Number(order.quality || 0);
-
-
-  const value =
-    prompt(
-      "أدخل تقييم الجودة من 0 إلى 100:",
-      current
-    );
-
-
-  if(value === null)
-    return;
-
-
-  let quality =
-    Number(value);
-
-
-  if(Number.isNaN(quality)){
-
-    showToast(
-      "يرجى إدخال رقم صحيح",
-      "error"
-    );
-
-    return;
-
-  }
-
-
-  quality =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        quality
-      )
-    );
-
-
-  await updateOrder(
-    id,
-    {
-      quality:quality
-    },
-    "تم تحديث تقييم الجودة إلى " +
-      quality +
-      "%"
-  );
-
-}
-
-
-/* =========================
-   تحديث الطلب
-========================= */
-
-async function updateOrder(
-  id,
-  updates,
-  successMessage
-){
+  if(!confirmed) return;
 
   try{
 
+    const buttons =
+      document.querySelectorAll(
+        `button[onclick="executeAI('${id}')"]`
+      );
+
+    buttons.forEach(button => {
+
+      button.disabled = true;
+      button.textContent =
+        "🤖 جاري التنفيذ...";
+
+    });
+
+
     const response =
       await fetch(
-        "/api/orders/" +
-        encodeURIComponent(id),
+        `/api/orders/${encodeURIComponent(id)}/execute`,
         {
-          method:"PUT",
+          method:"POST",
           headers:{
-            "Content-Type":
-              "application/json"
-          },
-          body:
-            JSON.stringify(updates)
+            "Content-Type":"application/json"
+          }
         }
       );
 
@@ -1806,30 +1443,103 @@ async function updateOrder(
 
       throw new Error(
         data.message ||
-        "فشل تحديث الطلب"
+        data.error ||
+        "فشل تنفيذ AI"
       );
 
     }
 
 
-    showToast(
-      successMessage ||
-      "تم تحديث الطلب",
-      "success"
+    alert(
+      "✅ تم تنفيذ الطلب بواسطة AI بنجاح.\n\nالموظف: " +
+      (data.order.assignedEmployee || "")
     );
 
 
-    await loadAll();
-
+    await loadOrders();
+    await loadDashboard();
 
   }catch(error){
 
-    console.error(error);
+    console.error(
+      "AI execution error:",
+      error
+    );
 
-    showToast(
-      error.message ||
-      "حدث خطأ أثناء التحديث",
-      "error"
+    alert(
+      "❌ لم يتم تنفيذ الطلب.\n\n" +
+      error.message
+    );
+
+    await loadOrders();
+
+  }
+
+}
+
+
+/* =====================================================
+   تغيير الحالة
+===================================================== */
+
+async function changeStatus(id){
+
+  const status =
+    prompt(
+      "اكتب الحالة:\nnew = جديد\nprocessing = قيد التنفيذ\nreview = مراجعة\ncompleted = مكتمل\ndelivered = تم التسليم\ncancelled = ملغي"
+    );
+
+  if(!status) return;
+
+  const allowed = [
+    "new",
+    "processing",
+    "review",
+    "completed",
+    "delivered",
+    "cancelled"
+  ];
+
+  if(!allowed.includes(status)){
+
+    alert("❌ الحالة غير صحيحة");
+
+    return;
+
+  }
+
+  try{
+
+    const response =
+      await fetch(
+        `/api/orders/${encodeURIComponent(id)}/status`,
+        {
+          method:"PATCH",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({status})
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+
+      throw new Error(
+        data.message || "فشل تغيير الحالة"
+      );
+
+    }
+
+    await loadOrders();
+    await loadDashboard();
+
+  }catch(error){
+
+    alert(
+      "❌ " + error.message
     );
 
   }
@@ -1837,78 +1547,286 @@ async function updateOrder(
 }
 
 
-/* =========================
-   حذف الطلب
-========================= */
+/* =====================================================
+   الدفع
+===================================================== */
 
-async function deleteOrder(id){
+async function setPaid(id){
 
-  const order =
-    orders.find(
-      item =>
-        String(item.id) === String(id)
-    );
+  await updatePayment(
+    id,
+    "paid"
+  );
 
-
-  if(!order)
-    return;
+}
 
 
-  const confirmed =
-    confirm(
-      "هل أنت متأكد من حذف الطلب #" +
-      id +
-      "؟"
-    );
+async function setUnpaid(id){
+
+  await updatePayment(
+    id,
+    "unpaid"
+  );
+
+}
 
 
-  if(!confirmed)
-    return;
-
+async function updatePayment(id,paymentStatus){
 
   try{
 
     const response =
       await fetch(
-        "/api/orders/" +
-        encodeURIComponent(id),
+        `/api/orders/${encodeURIComponent(id)}/payment`,
+        {
+          method:"PATCH",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            paymentStatus
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+
+      throw new Error(
+        data.message || "فشل تحديث الدفع"
+      );
+
+    }
+
+    await loadOrders();
+    await loadDashboard();
+
+  }catch(error){
+
+    alert(
+      "❌ " + error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   الجودة
+===================================================== */
+
+async function setQuality(id){
+
+  const value =
+    prompt(
+      "أدخل تقييم الجودة من 0 إلى 100:"
+    );
+
+  if(value === null) return;
+
+  const quality =
+    Number(value);
+
+  if(
+    Number.isNaN(quality) ||
+    quality < 0 ||
+    quality > 100
+  ){
+
+    alert(
+      "❌ أدخل رقمًا بين 0 و100"
+    );
+
+    return;
+
+  }
+
+  try{
+
+    const response =
+      await fetch(
+        `/api/orders/${encodeURIComponent(id)}/quality`,
+        {
+          method:"PATCH",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            quality
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+
+      throw new Error(
+        data.message || "فشل تحديث الجودة"
+      );
+
+    }
+
+    await loadOrders();
+    await loadDashboard();
+
+  }catch(error){
+
+    alert(
+      "❌ " + error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   تسليم الطلب
+===================================================== */
+
+async function deliverOrder(id){
+
+  const confirmed =
+    confirm(
+      "هل تريد اعتماد الطلب وتسليمه للعميل؟"
+    );
+
+  if(!confirmed) return;
+
+  try{
+
+    const response =
+      await fetch(
+        `/api/orders/${encodeURIComponent(id)}/status`,
+        {
+          method:"PATCH",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            status:"delivered"
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+
+      throw new Error(
+        data.message || "فشل تسليم الطلب"
+      );
+
+    }
+
+    alert(
+      "✅ تم تغيير حالة الطلب إلى تم التسليم"
+    );
+
+    await loadOrders();
+    await loadDashboard();
+
+  }catch(error){
+
+    alert(
+      "❌ " + error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   عرض نتيجة AI
+===================================================== */
+
+async function showResult(id){
+
+  try{
+
+    const response =
+      await fetch(
+        `/api/orders/${encodeURIComponent(id)}`
+      );
+
+    const data =
+      await response.json();
+
+    if(!response.ok || !data.success){
+
+      throw new Error(
+        data.message || "تعذر جلب الطلب"
+      );
+
+    }
+
+    const result =
+      data.order.aiResult || "لا توجد نتيجة AI.";
+
+    alert(
+      "🤖 نتيجة AI:\n\n" +
+      result
+    );
+
+  }catch(error){
+
+    alert(
+      "❌ " + error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   حذف طلب
+===================================================== */
+
+async function deleteOrder(id){
+
+  const confirmed =
+    confirm(
+      "⚠️ هل أنت متأكد من حذف الطلب؟ لا يمكن التراجع."
+    );
+
+  if(!confirmed) return;
+
+  try{
+
+    const response =
+      await fetch(
+        `/api/orders/${encodeURIComponent(id)}`,
         {
           method:"DELETE"
         }
       );
 
-
     const data =
       await response.json();
-
 
     if(!response.ok || !data.success){
 
       throw new Error(
-        data.message ||
-        "فشل حذف الطلب"
+        data.message || "فشل حذف الطلب"
       );
 
     }
 
-
-    showToast(
-      "تم حذف الطلب بنجاح",
-      "success"
-    );
-
-
-    await loadAll();
-
+    await loadOrders();
+    await loadDashboard();
 
   }catch(error){
 
-    console.error(error);
-
-    showToast(
-      error.message ||
-      "حدث خطأ أثناء الحذف",
-      "error"
+    alert(
+      "❌ " + error.message
     );
 
   }
@@ -1916,239 +1834,182 @@ async function deleteOrder(id){
 }
 
 
-/* =========================
-   تفاصيل الطلب
-========================= */
-
-function showOrderDetails(id){
-
-  const order =
-    orders.find(
-      item =>
-        String(item.id) === String(id)
-    );
-
-
-  if(!order)
-    return;
-
-
-  const details =
-
-    "رقم الطلب: " + order.id + "\n" +
-
-    "العميل: " + order.customerName + "\n" +
-
-    "البريد: " + order.customerEmail + "\n" +
-
-    "الخدمة: " + order.service + "\n" +
-
-    "السعر: " +
-      Number(order.price || 0) +
-      " ريال\n" +
-
-    "الحالة: " +
-      statusText(order.status) +
-      "\n" +
-
-    "الدفع: " +
-      paymentText(order.paymentStatus) +
-      "\n" +
-
-    "الجودة: " +
-      Number(order.quality || 0) +
-      "%\n\n" +
-
-    "الوصف:\n" +
-      (order.description || "لا يوجد");
-
-
-  alert(details);
-
-}
-
-
-/* =========================
+/* =====================================================
    إنشاء طلب
-========================= */
+===================================================== */
 
-document
-  .getElementById("orderForm")
-  .addEventListener(
-    "submit",
-    async function(event){
+$("orderForm").addEventListener(
+  "submit",
+  async function(event){
 
-      event.preventDefault();
+    event.preventDefault();
+
+    const button =
+      $("createBtn");
+
+    const message =
+      $("formMessage");
+
+    button.disabled = true;
+    button.textContent =
+      "⏳ جاري إنشاء الطلب...";
+
+    message.className =
+      "message";
+
+    message.textContent =
+      "";
+
+    try{
+
+      const payload = {
+
+        customerName:
+          $("customerName").value.trim(),
+
+        customerEmail:
+          $("customerEmail").value.trim(),
+
+        service:
+          $("service").value,
+
+        price:
+          Number(
+            $("price").value || 0
+          ),
+
+        description:
+          $("description").value.trim()
+
+      };
 
 
-      const button =
-        document.getElementById(
-          "submitOrderBtn"
+      const response =
+        await fetch(
+          "/api/orders",
+          {
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json"
+            },
+            body:JSON.stringify(payload)
+          }
         );
 
 
-      const customerName =
-        document.getElementById(
-          "customerName"
-        ).value.trim();
+      const data =
+        await response.json();
 
 
-      const customerEmail =
-        document.getElementById(
-          "customerEmail"
-        ).value.trim();
+      if(!response.ok || !data.success){
 
-
-      const service =
-        document.getElementById(
-          "service"
-        ).value;
-
-
-      const price =
-        document.getElementById(
-          "price"
-        ).value;
-
-
-      const description =
-        document.getElementById(
-          "description"
-        ).value.trim();
-
-
-      if(
-        !customerName ||
-        !customerEmail ||
-        !service
-      ){
-
-        showResult(
-          "يرجى تعبئة بيانات العميل والخدمة",
-          "error"
+        throw new Error(
+          data.message || "فشل إنشاء الطلب"
         );
-
-        return;
 
       }
 
 
-      button.disabled = true;
+      message.className =
+        "message success";
+
+      message.textContent =
+        "✅ تم إنشاء الطلب بنجاح";
+
+
+      this.reset();
+
+      $("price").value = "0";
+
+
+      await loadOrders();
+      await loadDashboard();
+
+
+      setTimeout(() => {
+
+        message.className =
+          "message";
+
+        message.textContent =
+          "";
+
+      },4000);
+
+
+    }catch(error){
+
+      console.error(error);
+
+      message.className =
+        "message error";
+
+      message.textContent =
+        "❌ " + error.message;
+
+    }finally{
+
+      button.disabled = false;
 
       button.textContent =
-        "جاري إنشاء الطلب...";
-
-
-      try{
-
-        const response =
-          await fetch(
-            "/api/orders",
-            {
-              method:"POST",
-              headers:{
-                "Content-Type":
-                  "application/json"
-              },
-              body:
-                JSON.stringify({
-
-                  customerName,
-
-                  customerEmail,
-
-                  service,
-
-                  price:
-
-                    Number(price || 0),
-
-                  description
-
-                })
-
-            }
-          );
-
-
-        const data =
-          await response.json();
-
-
-        if(!response.ok || !data.success){
-
-          throw new Error(
-            data.message ||
-            "تعذر إنشاء الطلب"
-          );
-
-        }
-
-
-        showResult(
-          "✅ تم إنشاء الطلب بنجاح",
-          "success"
-        );
-
-
-        showToast(
-          "تم إنشاء الطلب بنجاح",
-          "success"
-        );
-
-
-        document
-          .getElementById("orderForm")
-          .reset();
-
-
-        await loadAll();
-
-
-      }catch(error){
-
-        console.error(error);
-
-
-        showResult(
-          error.message ||
-          "حدث خطأ أثناء إنشاء الطلب",
-          "error"
-        );
-
-
-        showToast(
-          error.message ||
-          "حدث خطأ",
-          "error"
-        );
-
-
-      }finally{
-
-        button.disabled = false;
-
-        button.textContent =
-          "إنشاء الطلب";
-
-      }
+        "➕ إنشاء الطلب";
 
     }
-  );
-
-
-/* =========================
-   تشغيل النظام
-========================= */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  function(){
-
-    loadAll();
 
   }
 );
+
+
+/* =====================================================
+   البحث والفلاتر
+===================================================== */
+
+let searchTimer;
+
+$("search").addEventListener(
+  "input",
+  function(){
+
+    clearTimeout(searchTimer);
+
+    searchTimer =
+      setTimeout(
+        loadOrders,
+        350
+      );
+
+  }
+);
+
+
+$("statusFilter").addEventListener(
+  "change",
+  loadOrders
+);
+
+
+$("paymentFilter").addEventListener(
+  "change",
+  loadOrders
+);
+
+
+/* =====================================================
+   التشغيل الأول
+===================================================== */
+
+async function init(){
+
+  await loadDashboard();
+
+  await loadOrders();
+
+}
+
+
+/* تشغيل النظام */
+
+init();
 
 </script>
 
