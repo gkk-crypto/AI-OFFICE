@@ -13,26 +13,33 @@ const PORT = process.env.PORT || 10000;
 
 app.use(cors());
 
-app.use(express.json({
-  limit: "10mb"
-}));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-app.use(express.urlencoded({
-  extended: true,
-  limit: "10mb"
-}));
+// =====================================================
+// الملفات
+// =====================================================
+
+const publicDir = path.join(__dirname, "public");
+const dataDir = path.join(__dirname, "data");
+const ordersFile = path.join(dataDir, "orders.json");
+const uploadDir = "/tmp/ai-office-uploads";
+
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+if (!fs.existsSync(ordersFile)) {
+  fs.writeFileSync(ordersFile, "[]", "utf8");
+}
 
 // =====================================================
 // رفع الملفات
 // =====================================================
-
-const uploadDir = "/tmp/ai-office-uploads";
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, {
-    recursive: true
-  });
-}
 
 const upload = multer({
   dest: uploadDir,
@@ -42,49 +49,17 @@ const upload = multer({
 });
 
 // =====================================================
-// قاعدة البيانات
-// =====================================================
-
-const dataDir = path.join(__dirname, "data");
-const ordersFile = path.join(dataDir, "orders.json");
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, {
-    recursive: true
-  });
-}
-
-if (!fs.existsSync(ordersFile)) {
-  fs.writeFileSync(
-    ordersFile,
-    "[]",
-    "utf8"
-  );
-}
-
-// =====================================================
-// وظائف قاعدة البيانات
+// قاعدة البيانات البسيطة
 // =====================================================
 
 function getOrders() {
   try {
-    const data = fs.readFileSync(
-      ordersFile,
-      "utf8"
-    );
+    const content = fs.readFileSync(ordersFile, "utf8");
+    const data = JSON.parse(content);
 
-    const orders = JSON.parse(data);
-
-    return Array.isArray(orders)
-      ? orders
-      : [];
-
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error(
-      "Error reading orders:",
-      error
-    );
-
+    console.error("Error reading orders:", error);
     return [];
   }
 }
@@ -92,54 +67,61 @@ function getOrders() {
 function saveOrders(orders) {
   fs.writeFileSync(
     ordersFile,
-    JSON.stringify(
-      orders,
-      null,
-      2
-    ),
+    JSON.stringify(orders, null, 2),
     "utf8"
   );
 }
 
 // =====================================================
-// ملفات الموقع
+// الموقع
 // =====================================================
 
-app.use(
-  express.static(
-    path.join(__dirname, "public")
-  )
-);
+app.use(express.static(publicDir));
 
 // =====================================================
 // HEALTH CHECK
 // =====================================================
 
-app.get(
-  "/api/health",
-  (req, res) => {
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    status: "online",
+    service: "AI OFFICE",
+    aiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    model: process.env.OPENAI_MODEL || "gpt-5.4",
+    time: new Date().toISOString()
+  });
+});
 
-    res.json({
-      success: true,
-      status: "online",
-      service: "AI OFFICE",
-      aiConfigured: Boolean(
-        process.env.OPENAI_API_KEY
-      ),
-      time: new Date().toISOString()
+// =====================================================
+// اختبار OpenAI
+// =====================================================
+
+app.get("/api/ai/status", async (req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({
+      success: false,
+      configured: false,
+      message: "OPENAI_API_KEY غير موجود في Render"
     });
-
   }
-);
+
+  res.json({
+    success: true,
+    configured: true,
+    message: "مفتاح OpenAI موجود في البيئة",
+    model: process.env.OPENAI_MODEL || "gpt-5.4"
+  });
+});
 
 // =====================================================
 // AI ENGINE
 // =====================================================
 
 async function runAI(prompt) {
-
-  const apiKey =
-    process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     throw new Error(
@@ -148,87 +130,70 @@ async function runAI(prompt) {
   }
 
   const model =
-    process.env.OPENAI_MODEL ||
-    "gpt-5.4";
+    process.env.OPENAI_MODEL || "gpt-5.4";
 
-  const response =
-    await fetch(
-      "https://api.openai.com/v1/responses",
-      {
-        method: "POST",
+  const response = await fetch(
+    "https://api.openai.com/v1/responses",
+    {
+      method: "POST",
 
-        headers: {
-          "Content-Type":
-            "application/json",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
 
-          "Authorization":
-            `Bearer ${apiKey}`
-        },
+      body: JSON.stringify({
+        model,
+        input: prompt
+      })
+    }
+  );
 
-        body: JSON.stringify({
-          model: model,
-
-          input: prompt
-        })
-      }
-    );
-
-  const data =
-    await response.json();
+  const data = await response.json();
 
   if (!response.ok) {
-
-    console.error(
-      "OpenAI API Error:",
-      data
-    );
+    console.error("OpenAI API Error:", data);
 
     throw new Error(
       data?.error?.message ||
-      "OpenAI API Error"
+      "حدث خطأ في OpenAI API"
     );
   }
 
   if (
-    typeof data.output_text ===
-    "string"
+    typeof data.output_text === "string" &&
+    data.output_text.trim()
   ) {
-    return data.output_text;
+    return data.output_text.trim();
   }
 
-  // احتياط إذا لم يرجع output_text
+  // احتياط لاستخراج النص
   if (Array.isArray(data.output)) {
+    const text = data.output
+      .flatMap(item =>
+        Array.isArray(item.content)
+          ? item.content
+          : []
+      )
+      .map(item => item.text || "")
+      .filter(Boolean)
+      .join("\n");
 
-    const text =
-      data.output
-        .flatMap(item =>
-          Array.isArray(item.content)
-            ? item.content
-            : []
-        )
-        .map(content =>
-          content.text || ""
-        )
-        .filter(Boolean)
-        .join("\n");
-
-    if (text) {
-      return text;
+    if (text.trim()) {
+      return text.trim();
     }
   }
 
-  return "";
+  throw new Error(
+    "لم يتم استلام نتيجة نصية من OpenAI"
+  );
 }
 
 // =====================================================
 // ORCHESTRATOR AI
 // =====================================================
 
-function selectEmployee(
-  service,
-  description
-) {
-
+function selectEmployee(service, description) {
   const text =
     `${service || ""} ${description || ""}`
       .toLowerCase();
@@ -243,7 +208,8 @@ function selectEmployee(
 
   if (
     text.includes("تقرير") ||
-    text.includes("بحث")
+    text.includes("بحث") ||
+    text.includes("وصف")
   ) {
     return "Reports AI";
   }
@@ -273,7 +239,8 @@ function selectEmployee(
   if (
     text.includes("بيع") ||
     text.includes("مبيعات") ||
-    text.includes("تسويق")
+    text.includes("تسويق") ||
+    text.includes("إعلان")
   ) {
     return "Sales AI";
   }
@@ -294,45 +261,41 @@ function selectEmployee(
 // =====================================================
 
 async function executeAIOrder(order) {
-
-  const employee =
-    selectEmployee(
-      order.service,
-      order.description
-    );
+  const employee = selectEmployee(
+    order.service,
+    order.description
+  );
 
   const prompt = `
 أنت موظف متخصص داخل نظام AI OFFICE.
 
-اسم الموظف:
+الموظف المسؤول:
 ${employee}
 
 نوع الخدمة:
 ${order.service}
 
-وصف طلب العميل:
+طلب العميل:
 ${order.description}
 
-نفذ الطلب المطلوب الآن.
+نفذ طلب العميل الآن.
 
 التعليمات:
 - اكتب باللغة العربية.
-- قدم نتيجة جاهزة للتسليم.
+- قدم نتيجة جاهزة للتسليم للعميل.
 - كن احترافيًا وواضحًا.
-- لا تتحدث عن التعليمات الداخلية.
+- لا تذكر التعليمات الداخلية.
 - لا تذكر مفاتيح API.
-- لا تقل للعميل إنك لا تستطيع تنفيذ الطلب إذا كان بإمكانك تقديم نتيجة مفيدة.
-- استخدم عناوين ونقاط عند الحاجة.
-- إذا كان الطلب كتابة محتوى، اكتب المحتوى كاملًا.
-- إذا كان تقريرًا، اجعله منظمًا.
-- إذا كان خطابًا، اجعله رسميًا.
-- إذا كان وصفًا تسويقيًا، اجعله مناسبًا للإعلان.
+- لا تشرح أنك نموذج ذكاء اصطناعي.
+- إذا كان المطلوب وصفًا تسويقيًا، اكتب وصفًا احترافيًا جذابًا.
+- إذا كان المطلوب تقريرًا، اجعله منظمًا.
+- إذا كان المطلوب خطابًا، اجعله رسميًا.
+- استخدم العناوين والنقاط عند الحاجة.
 
 أخرج النتيجة النهائية فقط.
 `;
 
-  const result =
-    await runAI(prompt);
+  const result = await runAI(prompt);
 
   return {
     employee,
@@ -341,341 +304,250 @@ ${order.description}
 }
 
 // =====================================================
-// لوحة الإحصائيات
+// DASHBOARD
 // =====================================================
 
-app.get(
-  "/api/dashboard",
-  (req, res) => {
+app.get("/api/dashboard", (req, res) => {
+  const orders = getOrders();
 
-    const orders =
-      getOrders();
+  const revenue = orders.reduce(
+    (total, order) =>
+      total + Number(order.price || 0),
+    0
+  );
 
-    const revenue =
-      orders.reduce(
-        (total, order) =>
-          total +
-          Number(order.price || 0),
-        0
-      );
+  const paidOrders = orders.filter(
+    order => order.paymentStatus === "paid"
+  ).length;
 
-    const paidOrders =
-      orders.filter(
-        order =>
-          order.paymentStatus === "paid"
-      ).length;
+  const deliveredOrders = orders.filter(
+    order =>
+      order.status === "delivered" ||
+      order.status === "completed"
+  ).length;
 
-    const deliveredOrders =
-      orders.filter(
-        order =>
-          order.status === "delivered" ||
-          order.status === "completed"
-      ).length;
+  const processingOrders = orders.filter(
+    order => order.status === "processing"
+  ).length;
 
-    const processingOrders =
-      orders.filter(
-        order =>
-          order.status === "processing"
-      ).length;
+  const newOrders = orders.filter(
+    order => order.status === "new"
+  ).length;
 
-    const newOrders =
-      orders.filter(
-        order =>
-          order.status === "new"
-      ).length;
+  const reviewOrders = orders.filter(
+    order => order.status === "review"
+  ).length;
 
-    const reviewOrders =
-      orders.filter(
-        order =>
-          order.status === "review"
-      ).length;
+  const qualityOrders = orders.filter(
+    order => Number(order.quality || 0) > 0
+  );
 
-    const qualityOrders =
-      orders.filter(
-        order =>
-          order.quality !== undefined &&
-          order.quality !== null &&
-          Number(order.quality) > 0
-      );
+  const averageQuality =
+    qualityOrders.length > 0
+      ? Math.round(
+          qualityOrders.reduce(
+            (sum, order) =>
+              sum + Number(order.quality || 0),
+            0
+          ) / qualityOrders.length
+        )
+      : 0;
 
-    const averageQuality =
-      qualityOrders.length > 0
-        ? Math.round(
-            qualityOrders.reduce(
-              (sum, order) =>
-                sum +
-                Number(order.quality || 0),
-              0
-            ) /
-            qualityOrders.length
-          )
-        : 0;
-
-    res.json({
-      success: true,
-      totalOrders: orders.length,
-      revenue,
-      paidOrders,
-      deliveredOrders,
-      processingOrders,
-      newOrders,
-      reviewOrders,
-      averageQuality
-    });
-
-  }
-);
+  res.json({
+    success: true,
+    totalOrders: orders.length,
+    revenue,
+    paidOrders,
+    deliveredOrders,
+    processingOrders,
+    newOrders,
+    reviewOrders,
+    averageQuality
+  });
+});
 
 // =====================================================
-// جلب الطلبات
+// GET ORDERS
 // =====================================================
 
-app.get(
-  "/api/orders",
-  (req, res) => {
+app.get("/api/orders", (req, res) => {
+  let orders = getOrders();
 
-    let orders =
-      getOrders();
-
-    const search =
-      String(
-        req.query.search || ""
-      )
+  const search =
+    String(req.query.search || "")
       .trim()
       .toLowerCase();
 
-    const status =
-      String(
-        req.query.status || ""
-      )
-      .trim();
+  const status =
+    String(req.query.status || "").trim();
 
-    const paymentStatus =
-      String(
-        req.query.paymentStatus || ""
-      )
-      .trim();
+  const paymentStatus =
+    String(req.query.paymentStatus || "").trim();
 
-    if (search) {
+  if (search) {
+    orders = orders.filter(order => {
+      const text = [
+        order.id,
+        order.customerName,
+        order.customerEmail,
+        order.service,
+        order.description,
+        order.aiResult,
+        order.assignedEmployee
+      ]
+        .join(" ")
+        .toLowerCase();
 
-      orders =
-        orders.filter(
-          order => {
-
-            const text =
-              [
-                order.id,
-                order.customerName,
-                order.customerEmail,
-                order.service,
-                order.description,
-                order.aiResult
-              ]
-              .join(" ")
-              .toLowerCase();
-
-            return text.includes(search);
-          }
-        );
-    }
-
-    if (status) {
-
-      orders =
-        orders.filter(
-          order =>
-            order.status === status
-        );
-    }
-
-    if (paymentStatus) {
-
-      orders =
-        orders.filter(
-          order =>
-            order.paymentStatus ===
-            paymentStatus
-        );
-    }
-
-    res.json({
-      success: true,
-      count: orders.length,
-      orders
+      return text.includes(search);
     });
-
   }
-);
+
+  if (status) {
+    orders = orders.filter(
+      order => order.status === status
+    );
+  }
+
+  if (paymentStatus) {
+    orders = orders.filter(
+      order =>
+        order.paymentStatus === paymentStatus
+    );
+  }
+
+  res.json({
+    success: true,
+    count: orders.length,
+    orders
+  });
+});
 
 // =====================================================
-// جلب طلب واحد
+// GET SINGLE ORDER
 // =====================================================
 
-app.get(
-  "/api/orders/:id",
-  (req, res) => {
+app.get("/api/orders/:id", (req, res) => {
+  const orders = getOrders();
 
-    const orders =
-      getOrders();
+  const order = orders.find(
+    item =>
+      String(item.id) ===
+      String(req.params.id)
+  );
 
-    const order =
-      orders.find(
-        item =>
-          String(item.id) ===
-          String(req.params.id)
-      );
-
-    if (!order) {
-
-      return res.status(404).json({
-        success: false,
-        message: "الطلب غير موجود"
-      });
-
-    }
-
-    res.json({
-      success: true,
-      order
+  if (!order) {
+    return res.status(404).json({
+      success: false,
+      message: "الطلب غير موجود"
     });
-
   }
-);
+
+  res.json({
+    success: true,
+    order
+  });
+});
 
 // =====================================================
-// إنشاء طلب
+// CREATE ORDER
 // =====================================================
 
-app.post(
-  "/api/orders",
-  (req, res) => {
+app.post("/api/orders", (req, res) => {
+  const {
+    customerName,
+    customerEmail,
+    service,
+    price,
+    description
+  } = req.body;
 
-    const {
-      customerName,
-      customerEmail,
-      service,
-      price,
-      description
-    } = req.body;
-
-    if (
-      !customerName ||
-      !customerEmail ||
-      !service
-    ) {
-
-      return res.status(400).json({
-        success: false,
-        message:
-          "يرجى تعبئة بيانات العميل والخدمة"
-      });
-
-    }
-
-    const orders =
-      getOrders();
-
-    const now =
-      new Date().toISOString();
-
-    const newOrder = {
-
-      id:
-        Date.now().toString(),
-
-      customerName:
-        String(customerName).trim(),
-
-      customerEmail:
-        String(customerEmail).trim(),
-
-      service:
-        String(service).trim(),
-
-      price:
-        Number(price || 0),
-
-      description:
-        String(description || "").trim(),
-
-      status:
-        "new",
-
-      paymentStatus:
-        "unpaid",
-
-      quality:
-        0,
-
-      assignedEmployee:
-        null,
-
-      aiResult:
-        "",
-
-      createdAt:
-        now,
-
-      updatedAt:
-        now
-
-    };
-
-    orders.push(
-      newOrder
-    );
-
-    saveOrders(
-      orders
-    );
-
-    res.status(201).json({
-      success: true,
+  if (
+    !customerName ||
+    !customerEmail ||
+    !service
+  ) {
+    return res.status(400).json({
+      success: false,
       message:
-        "تم إنشاء الطلب بنجاح",
-      order:
-        newOrder
+        "يرجى تعبئة اسم العميل والبريد الإلكتروني والخدمة"
     });
-
   }
-);
+
+  const orders = getOrders();
+
+  const now =
+    new Date().toISOString();
+
+  const order = {
+    id: Date.now().toString(),
+
+    customerName:
+      String(customerName).trim(),
+
+    customerEmail:
+      String(customerEmail).trim(),
+
+    service:
+      String(service).trim(),
+
+    price:
+      Number(price || 0),
+
+    description:
+      String(description || "").trim(),
+
+    status: "new",
+
+    paymentStatus: "unpaid",
+
+    quality: 0,
+
+    assignedEmployee: null,
+
+    aiResult: "",
+
+    createdAt: now,
+
+    updatedAt: now
+  };
+
+  orders.push(order);
+
+  saveOrders(orders);
+
+  res.status(201).json({
+    success: true,
+    message: "تم إنشاء الطلب بنجاح",
+    order
+  });
+});
 
 // =====================================================
-// تنفيذ طلب بواسطة AI
+// EXECUTE ORDER WITH AI
 // =====================================================
 
 app.post(
   "/api/orders/:id/execute",
   async (req, res) => {
+    const orders = getOrders();
+
+    const index = orders.findIndex(
+      order =>
+        String(order.id) ===
+        String(req.params.id)
+    );
+
+    if (index === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "الطلب غير موجود"
+      });
+    }
 
     try {
+      const order = orders[index];
 
-      const orders =
-        getOrders();
-
-      const index =
-        orders.findIndex(
-          order =>
-            String(order.id) ===
-            String(req.params.id)
-        );
-
-      if (index === -1) {
-
-        return res.status(404).json({
-          success: false,
-          message:
-            "الطلب غير موجود"
-        });
-
-      }
-
-      const order =
-        orders[index];
-
-      // بدء التنفيذ
-      orders[index].status =
-        "processing";
+      orders[index].status = "processing";
 
       orders[index].assignedEmployee =
         selectEmployee(
@@ -686,260 +558,80 @@ app.post(
       orders[index].updatedAt =
         new Date().toISOString();
 
-      saveOrders(
-        orders
-      );
+      saveOrders(orders);
 
-      // تنفيذ AI
       const aiResult =
-        await executeAIOrder(
-          order
-        );
+        await executeAIOrder(order);
 
-      // حفظ النتيجة
       orders[index].aiResult =
         aiResult.result;
 
       orders[index].assignedEmployee =
         aiResult.employee;
 
-      orders[index].status =
-        "review";
+      orders[index].status = "review";
 
-      orders[index].quality =
-        0;
+      orders[index].quality = 0;
 
       orders[index].updatedAt =
         new Date().toISOString();
 
-      saveOrders(
-        orders
-      );
+      saveOrders(orders);
 
-      res.json({
+      return res.json({
         success: true,
         message:
           "تم تنفيذ الطلب بواسطة AI بنجاح",
-        order:
-          orders[index]
+        order: orders[index]
       });
 
     } catch (error) {
-
       console.error(
         "AI execution error:",
         error
       );
 
-      // إذا فشل AI نحاول إعادة الطلب لحالة جديدة
-      try {
+      orders[index].status = "new";
 
-        const orders =
-          getOrders();
+      orders[index].updatedAt =
+        new Date().toISOString();
 
-        const index =
-          orders.findIndex(
-            order =>
-              String(order.id) ===
-              String(req.params.id)
-          );
+      saveOrders(orders);
 
-        if (index !== -1) {
-
-          orders[index].status =
-            "new";
-
-          orders[index].updatedAt =
-            new Date().toISOString();
-
-          saveOrders(
-            orders
-          );
-        }
-
-      } catch (saveError) {
-
-        console.error(
-          "Error restoring order:",
-          saveError
-        );
-      }
-
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message:
-          "حدث خطأ أثناء تنفيذ الطلب بواسطة AI",
-        error:
-          error.message
+          "فشل تنفيذ الطلب بواسطة AI",
+        error: error.message
       });
-
     }
-
   }
 );
 
 // =====================================================
-// تحديث طلب
+// UPDATE ORDER
 // =====================================================
 
-app.put(
-  "/api/orders/:id",
-  (req, res) => {
+app.put("/api/orders/:id", (req, res) => {
+  const orders = getOrders();
 
-    const orders =
-      getOrders();
+  const index = orders.findIndex(
+    order =>
+      String(order.id) ===
+      String(req.params.id)
+  );
 
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(req.params.id)
-      );
-
-    if (index === -1) {
-
-      return res.status(404).json({
-        success: false,
-        message:
-          "الطلب غير موجود"
-      });
-
-    }
-
-    if (
-      req.body.status !==
-      undefined
-    ) {
-
-      const allowedStatuses = [
-        "new",
-        "processing",
-        "review",
-        "delivered",
-        "completed",
-        "cancelled"
-      ];
-
-      if (
-        allowedStatuses.includes(
-          req.body.status
-        )
-      ) {
-
-        orders[index].status =
-          req.body.status;
-
-      }
-    }
-
-    if (
-      req.body.paymentStatus !==
-      undefined
-    ) {
-
-      const allowedPayments = [
-        "unpaid",
-        "paid",
-        "refunded",
-        "pending"
-      ];
-
-      if (
-        allowedPayments.includes(
-          req.body.paymentStatus
-        )
-      ) {
-
-        orders[index].paymentStatus =
-          req.body.paymentStatus;
-
-      }
-    }
-
-    if (
-      req.body.quality !==
-      undefined
-    ) {
-
-      let quality =
-        Number(
-          req.body.quality
-        );
-
-      if (
-        Number.isNaN(quality)
-      ) {
-        quality = 0;
-      }
-
-      quality =
-        Math.max(
-          0,
-          Math.min(
-            100,
-            quality
-          )
-        );
-
-      orders[index].quality =
-        quality;
-    }
-
-    if (
-      req.body.description !==
-      undefined
-    ) {
-
-      orders[index].description =
-        String(
-          req.body.description
-        ).trim();
-
-    }
-
-    if (
-      req.body.aiResult !==
-      undefined
-    ) {
-
-      orders[index].aiResult =
-        String(
-          req.body.aiResult
-        );
-
-    }
-
-    orders[index].updatedAt =
-      new Date().toISOString();
-
-    saveOrders(
-      orders
-    );
-
-    res.json({
-      success: true,
-      message:
-        "تم تحديث الطلب بنجاح",
-      order:
-        orders[index]
+  if (index === -1) {
+    return res.status(404).json({
+      success: false,
+      message: "الطلب غير موجود"
     });
-
   }
-);
 
-// =====================================================
-// تغيير حالة الطلب
-// =====================================================
+  const order = orders[index];
 
-app.patch(
-  "/api/orders/:id/status",
-  (req, res) => {
-
-    const {
-      status
-    } = req.body;
-
-    const allowedStatuses = [
+  if (req.body.status !== undefined) {
+    const statuses = [
       "new",
       "processing",
       "review",
@@ -948,74 +640,15 @@ app.patch(
       "cancelled"
     ];
 
-    if (
-      !allowedStatuses.includes(
-        status
-      )
-    ) {
-
-      return res.status(400).json({
-        success: false,
-        message:
-          "حالة الطلب غير صحيحة"
-      });
-
+    if (statuses.includes(req.body.status)) {
+      order.status = req.body.status;
     }
-
-    const orders =
-      getOrders();
-
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(req.params.id)
-      );
-
-    if (index === -1) {
-
-      return res.status(404).json({
-        success: false,
-        message:
-          "الطلب غير موجود"
-      });
-
-    }
-
-    orders[index].status =
-      status;
-
-    orders[index].updatedAt =
-      new Date().toISOString();
-
-    saveOrders(
-      orders
-    );
-
-    res.json({
-      success: true,
-      message:
-        "تم تغيير حالة الطلب",
-      order:
-        orders[index]
-    });
-
   }
-);
 
-// =====================================================
-// تغيير حالة الدفع
-// =====================================================
-
-app.patch(
-  "/api/orders/:id/payment",
-  (req, res) => {
-
-    const {
-      paymentStatus
-    } = req.body;
-
-    const allowedPayments = [
+  if (
+    req.body.paymentStatus !== undefined
+  ) {
+    const payments = [
       "unpaid",
       "paid",
       "pending",
@@ -1023,207 +656,272 @@ app.patch(
     ];
 
     if (
-      !allowedPayments.includes(
-        paymentStatus
+      payments.includes(
+        req.body.paymentStatus
       )
     ) {
+      order.paymentStatus =
+        req.body.paymentStatus;
+    }
+  }
 
+  if (req.body.quality !== undefined) {
+    let quality =
+      Number(req.body.quality);
+
+    if (Number.isNaN(quality)) {
+      quality = 0;
+    }
+
+    order.quality =
+      Math.max(
+        0,
+        Math.min(100, quality)
+      );
+  }
+
+  if (
+    req.body.description !== undefined
+  ) {
+    order.description =
+      String(req.body.description).trim();
+  }
+
+  if (
+    req.body.aiResult !== undefined
+  ) {
+    order.aiResult =
+      String(req.body.aiResult);
+  }
+
+  order.updatedAt =
+    new Date().toISOString();
+
+  saveOrders(orders);
+
+  res.json({
+    success: true,
+    message: "تم تحديث الطلب بنجاح",
+    order
+  });
+});
+
+// =====================================================
+// STATUS
+// =====================================================
+
+app.patch(
+  "/api/orders/:id/status",
+  (req, res) => {
+    const statuses = [
+      "new",
+      "processing",
+      "review",
+      "delivered",
+      "completed",
+      "cancelled"
+    ];
+
+    if (!statuses.includes(req.body.status)) {
       return res.status(400).json({
         success: false,
-        message:
-          "حالة الدفع غير صحيحة"
+        message: "حالة الطلب غير صحيحة"
       });
-
     }
 
-    const orders =
-      getOrders();
+    const orders = getOrders();
 
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(req.params.id)
-      );
+    const index = orders.findIndex(
+      order =>
+        String(order.id) ===
+        String(req.params.id)
+    );
 
     if (index === -1) {
-
       return res.status(404).json({
         success: false,
-        message:
-          "الطلب غير موجود"
+        message: "الطلب غير موجود"
       });
-
     }
 
-    orders[index].paymentStatus =
-      paymentStatus;
+    orders[index].status =
+      req.body.status;
 
     orders[index].updatedAt =
       new Date().toISOString();
 
-    saveOrders(
-      orders
-    );
+    saveOrders(orders);
 
     res.json({
       success: true,
-      message:
-        "تم تحديث حالة الدفع",
-      order:
-        orders[index]
+      message: "تم تغيير حالة الطلب",
+      order: orders[index]
     });
-
   }
 );
 
 // =====================================================
-// تحديث الجودة
+// PAYMENT
+// =====================================================
+
+app.patch(
+  "/api/orders/:id/payment",
+  (req, res) => {
+    const payments = [
+      "unpaid",
+      "paid",
+      "pending",
+      "refunded"
+    ];
+
+    if (
+      !payments.includes(
+        req.body.paymentStatus
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "حالة الدفع غير صحيحة"
+      });
+    }
+
+    const orders = getOrders();
+
+    const index = orders.findIndex(
+      order =>
+        String(order.id) ===
+        String(req.params.id)
+    );
+
+    if (index === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "الطلب غير موجود"
+      });
+    }
+
+    orders[index].paymentStatus =
+      req.body.paymentStatus;
+
+    orders[index].updatedAt =
+      new Date().toISOString();
+
+    saveOrders(orders);
+
+    res.json({
+      success: true,
+      message: "تم تحديث حالة الدفع",
+      order: orders[index]
+    });
+  }
+);
+
+// =====================================================
+// QUALITY
 // =====================================================
 
 app.patch(
   "/api/orders/:id/quality",
   (req, res) => {
-
     let quality =
-      Number(
-        req.body.quality
-      );
+      Number(req.body.quality);
 
-    if (
-      Number.isNaN(quality)
-    ) {
-
+    if (Number.isNaN(quality)) {
       return res.status(400).json({
         success: false,
-        message:
-          "قيمة الجودة غير صحيحة"
+        message: "قيمة الجودة غير صحيحة"
       });
-
     }
 
     quality =
       Math.max(
         0,
-        Math.min(
-          100,
-          quality
-        )
+        Math.min(100, quality)
       );
 
-    const orders =
-      getOrders();
+    const orders = getOrders();
 
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(req.params.id)
-      );
+    const index = orders.findIndex(
+      order =>
+        String(order.id) ===
+        String(req.params.id)
+    );
 
     if (index === -1) {
-
       return res.status(404).json({
         success: false,
-        message:
-          "الطلب غير موجود"
+        message: "الطلب غير موجود"
       });
-
     }
 
-    orders[index].quality =
-      quality;
+    orders[index].quality = quality;
 
     orders[index].updatedAt =
       new Date().toISOString();
 
-    saveOrders(
-      orders
-    );
+    saveOrders(orders);
 
     res.json({
       success: true,
-      message:
-        "تم تحديث جودة الطلب",
-      order:
-        orders[index]
+      message: "تم تحديث جودة الطلب",
+      order: orders[index]
     });
-
   }
 );
 
 // =====================================================
-// حذف طلب
+// DELETE ORDER
 // =====================================================
 
 app.delete(
   "/api/orders/:id",
   (req, res) => {
+    const orders = getOrders();
 
-    const orders =
-      getOrders();
-
-    const index =
-      orders.findIndex(
-        order =>
-          String(order.id) ===
-          String(req.params.id)
-      );
+    const index = orders.findIndex(
+      order =>
+        String(order.id) ===
+        String(req.params.id)
+    );
 
     if (index === -1) {
-
       return res.status(404).json({
         success: false,
-        message:
-          "الطلب غير موجود"
+        message: "الطلب غير موجود"
       });
-
     }
 
-    const deletedOrder =
-      orders.splice(
-        index,
-        1
-      )[0];
+    const deleted =
+      orders.splice(index, 1)[0];
 
-    saveOrders(
-      orders
-    );
+    saveOrders(orders);
 
     res.json({
       success: true,
-      message:
-        "تم حذف الطلب بنجاح",
-      order:
-        deletedOrder
+      message: "تم حذف الطلب بنجاح",
+      order: deleted
     });
-
   }
 );
 
 // =====================================================
-// رفع ملف
+// UPLOAD
 // =====================================================
 
 app.post(
   "/api/upload",
   upload.single("file"),
   (req, res) => {
-
     if (!req.file) {
-
       return res.status(400).json({
         success: false,
-        message:
-          "لم يتم رفع ملف"
+        message: "لم يتم رفع ملف"
       });
-
     }
 
     res.json({
       success: true,
-      message:
-        "تم استلام الملف بنجاح",
+      message: "تم استلام الملف بنجاح",
       file: {
         originalName:
           req.file.originalname,
@@ -1235,41 +933,60 @@ app.post(
           req.file.mimetype
       }
     });
-
   }
 );
 
 // =====================================================
-// الصفحة الرئيسية
+// FALLBACK
 // =====================================================
 
-app.get(
-  "/{*splat}",
-  (req, res) => {
+// Express 5
+app.get("/{*splat}", (req, res) => {
+  res.sendFile(
+    path.join(
+      publicDir,
+      "index.html"
+    )
+  );
+});
 
-    res.sendFile(
-      path.join(
-        __dirname,
-        "public",
-        "index.html"
-      )
+// =====================================================
+// ERROR HANDLER
+// =====================================================
+
+app.use(
+  (error, req, res, next) => {
+    console.error(
+      "Server error:",
+      error
     );
 
+    res.status(500).json({
+      success: false,
+      message:
+        "حدث خطأ داخلي في الخادم",
+      error:
+        error.message
+    });
   }
 );
 
 // =====================================================
-// تشغيل الخادم
+// START
 // =====================================================
 
 app.listen(
   PORT,
   "0.0.0.0",
   () => {
-
     console.log(
       `AI OFFICE running on port ${PORT}`
     );
 
+    console.log(
+      `OpenAI configured: ${Boolean(
+        process.env.OPENAI_API_KEY
+      )}`
+    );
   }
 );
