@@ -83,7 +83,7 @@ function saveOrders(orders) {
 function getAIConfig() {
   const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
   const model = String(
-    process.env.OPENAI_MODEL || "gpt-5-mini"
+    process.env.OPENAI_MODEL || "gpt-3.5-turbo"
   ).trim();
 
   return {
@@ -326,6 +326,7 @@ async function runAI(prompt) {
   console.log("=================================");
   console.log("AI OFFICE - OpenAI Request");
   console.log("Model:", ai.model);
+  console.log("Endpoint: https://api.openai.com/v1/chat/completions");
   console.log("=================================");
 
   const controller = new AbortController();
@@ -338,7 +339,7 @@ async function runAI(prompt) {
 
   try {
     response = await fetch(
-      "https://api.openai.com/v1/responses",
+      "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
 
@@ -349,17 +350,14 @@ async function runAI(prompt) {
 
         body: JSON.stringify({
           model: ai.model,
-          input: [
+          messages: [
             {
               role: "user",
-              content: [
-                {
-                  type: "input_text",
-                  text: prompt
-                }
-              ]
+              content: prompt
             }
-          ]
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
         }),
 
         signal: controller.signal
@@ -428,40 +426,18 @@ async function runAI(prompt) {
   }
 
   // ===================================================
-  // PRIMARY TEXT EXTRACTION
+  // EXTRACT TEXT FROM CHAT COMPLETION RESPONSE
   // ===================================================
 
   if (
-    typeof data.output_text === "string" &&
-    data.output_text.trim()
+    Array.isArray(data.choices) &&
+    data.choices.length > 0 &&
+    data.choices[0].message &&
+    typeof data.choices[0].message.content === "string"
   ) {
-    return data.output_text.trim();
-  }
-
-  // ===================================================
-  // FALLBACK TEXT EXTRACTION
-  // ===================================================
-
-  if (Array.isArray(data.output)) {
-    const parts = [];
-
-    for (const item of data.output) {
-      if (!Array.isArray(item.content)) {
-        continue;
-      }
-
-      for (const content of item.content) {
-        if (
-          typeof content.text === "string" &&
-          content.text.trim()
-        ) {
-          parts.push(content.text.trim());
-        }
-      }
-    }
-
-    if (parts.length > 0) {
-      return parts.join("\n");
+    const content = data.choices[0].message.content.trim();
+    if (content) {
+      return content;
     }
   }
 
@@ -470,7 +446,7 @@ async function runAI(prompt) {
   // ===================================================
 
   console.error(
-    "OpenAI response did not contain text:"
+    "OpenAI response did not contain valid text:"
   );
 
   console.error(
@@ -478,7 +454,7 @@ async function runAI(prompt) {
   );
 
   throw new Error(
-    "تم الاتصال بـ OpenAI ولكن لم يتم استلام نص"
+    "تم الاتصال بـ OpenAI ولكن لم يتم استلام نص صحيح"
   );
 }
 
