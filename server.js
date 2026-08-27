@@ -7,6 +7,14 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+const MAX_NAME_LENGTH = 120;
+const MAX_EMAIL_LENGTH = 254;
+const MAX_SERVICE_LENGTH = 120;
+const MAX_DESCRIPTION_LENGTH = 20000;
+const MAX_AI_RESULT_LENGTH = 100000;
+const MAX_PRICE = 1000000000;
+const AI_REQUEST_TIMEOUT_MS = 60000;
+
 // =====================================================
 // AI OFFICE - SERVER
 // =====================================================
@@ -72,6 +80,193 @@ function saveOrders(orders) {
   );
 }
 
+function getAIConfig() {
+  const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
+  const model = String(
+    process.env.OPENAI_MODEL || "gpt-5-mini"
+  ).trim();
+
+  return {
+    apiKey,
+    model,
+    configured: Boolean(apiKey),
+    ready: Boolean(apiKey && model)
+  };
+}
+
+function validateOrderInput(input, options = {}) {
+  const partial = Boolean(options.partial);
+
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Array.isArray(input)
+  ) {
+    return {
+      valid: false,
+      message: "بيانات الطلب غير صحيحة"
+    };
+  }
+
+  const value = {};
+
+  if (!partial || input.customerName !== undefined) {
+    if (typeof input.customerName !== "string") {
+      return {
+        valid: false,
+        message: "اسم العميل غير صحيح"
+      };
+    }
+
+    const customerName = input.customerName.trim();
+
+    if (!customerName) {
+      return {
+        valid: false,
+        message: "اسم العميل لا يمكن أن يكون فارغًا"
+      };
+    }
+
+    if (customerName.length > MAX_NAME_LENGTH) {
+      return {
+        valid: false,
+        message: `اسم العميل يجب ألا يتجاوز ${MAX_NAME_LENGTH} حرفًا`
+      };
+    }
+
+    value.customerName = customerName;
+  }
+
+  if (!partial || input.customerEmail !== undefined) {
+    if (typeof input.customerEmail !== "string") {
+      return {
+        valid: false,
+        message: "البريد الإلكتروني غير صحيح"
+      };
+    }
+
+    const customerEmail = input.customerEmail.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (
+      !customerEmail ||
+      customerEmail.length > MAX_EMAIL_LENGTH ||
+      !emailPattern.test(customerEmail)
+    ) {
+      return {
+        valid: false,
+        message: "يرجى إدخال بريد إلكتروني صحيح"
+      };
+    }
+
+    value.customerEmail = customerEmail;
+  }
+
+  if (!partial || input.service !== undefined) {
+    if (typeof input.service !== "string") {
+      return {
+        valid: false,
+        message: "الخدمة غير صحيحة"
+      };
+    }
+
+    const service = input.service.trim();
+
+    if (!service) {
+      return {
+        valid: false,
+        message: "يرجى تحديد الخدمة"
+      };
+    }
+
+    if (service.length > MAX_SERVICE_LENGTH) {
+      return {
+        valid: false,
+        message: `اسم الخدمة يجب ألا يتجاوز ${MAX_SERVICE_LENGTH} حرفًا`
+      };
+    }
+
+    value.service = service;
+  }
+
+  if (!partial || input.description !== undefined) {
+    if (typeof input.description !== "string") {
+      return {
+        valid: false,
+        message: "وصف الطلب غير صحيح"
+      };
+    }
+
+    const description = input.description.trim();
+
+    if (!description) {
+      return {
+        valid: false,
+        message: "يرجى كتابة وصف الطلب"
+      };
+    }
+
+    if (description.length > MAX_DESCRIPTION_LENGTH) {
+      return {
+        valid: false,
+        message: `وصف الطلب يجب ألا يتجاوز ${MAX_DESCRIPTION_LENGTH} حرف`
+      };
+    }
+
+    value.description = description;
+  }
+
+  if (!partial || input.price !== undefined) {
+    const rawPrice =
+      input.price === undefined ||
+      input.price === null ||
+      input.price === ""
+        ? 0
+        : Number(input.price);
+
+    if (
+      !Number.isFinite(rawPrice) ||
+      rawPrice < 0 ||
+      rawPrice > MAX_PRICE
+    ) {
+      return {
+        valid: false,
+        message: "السعر يجب أن يكون رقمًا صالحًا وغير سالب"
+      };
+    }
+
+    value.price = rawPrice;
+  }
+
+  return {
+    valid: true,
+    value
+  };
+}
+
+function validateAIResult(value) {
+  if (typeof value !== "string") {
+    return {
+      valid: false,
+      message: "نتيجة AI غير صحيحة"
+    };
+  }
+
+  const aiResult = value.trim();
+
+  if (aiResult.length > MAX_AI_RESULT_LENGTH) {
+    return {
+      valid: false,
+      message: `نتيجة AI يجب ألا تتجاوز ${MAX_AI_RESULT_LENGTH} حرف`
+    };
+  }
+
+  return {
+    valid: true,
+    value: aiResult
+  };
+}
+
 // =====================================================
 // STATIC WEBSITE
 // =====================================================
@@ -83,12 +278,15 @@ app.use(express.static(publicDir));
 // =====================================================
 
 app.get("/api/health", (req, res) => {
+  const ai = getAIConfig();
+
   res.json({
     success: true,
     status: "online",
     service: "AI OFFICE",
-    aiConfigured: Boolean(process.env.OPENAI_API_KEY),
-    model: process.env.OPENAI_MODEL || "gpt-5-mini",
+    aiConfigured: ai.configured,
+    aiReady: ai.ready,
+    model: ai.model,
     time: new Date().toISOString()
   });
 });
@@ -98,15 +296,17 @@ app.get("/api/health", (req, res) => {
 // =====================================================
 
 app.get("/api/ai/status", (req, res) => {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const ai = getAIConfig();
 
   res.json({
-    success: Boolean(apiKey),
-    configured: Boolean(apiKey),
-    message: apiKey
-      ? "مفتاح OpenAI موجود في البيئة"
-      : "OPENAI_API_KEY غير موجود في Render",
-    model: process.env.OPENAI_MODEL || "gpt-5-mini"
+    success: ai.ready,
+    configured: ai.configured,
+    ready: ai.ready,
+    provider: "OpenAI",
+    message: ai.ready
+      ? "خدمة الذكاء الاصطناعي مهيأة"
+      : "خدمة الذكاء الاصطناعي غير مهيأة. يرجى إضافة OPENAI_API_KEY في بيئة الخادم",
+    model: ai.model
   });
 });
 
@@ -115,48 +315,65 @@ app.get("/api/ai/status", (req, res) => {
 // =====================================================
 
 async function runAI(prompt) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const ai = getAIConfig();
 
-  if (!apiKey) {
+  if (!ai.ready) {
     throw new Error(
-      "OPENAI_API_KEY غير موجود في Render"
+      "AI service is not configured"
     );
   }
 
-  const model =
-    process.env.OPENAI_MODEL || "gpt-5-mini";
-
   console.log("=================================");
   console.log("AI OFFICE - OpenAI Request");
-  console.log("Model:", model);
+  console.log("Model:", ai.model);
   console.log("=================================");
 
-  const response = await fetch(
-    "https://api.openai.com/v1/responses",
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-
-      body: JSON.stringify({
-        model: model,
-        input: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: prompt
-              }
-            ]
-          }
-        ]
-      })
-    }
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    AI_REQUEST_TIMEOUT_MS
   );
+
+  let response;
+
+  try {
+    response = await fetch(
+      "https://api.openai.com/v1/responses",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${ai.apiKey}`
+        },
+
+        body: JSON.stringify({
+          model: ai.model,
+          input: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "input_text",
+                  text: prompt
+                }
+              ]
+            }
+          ]
+        }),
+
+        signal: controller.signal
+      }
+    );
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("OpenAI request timed out");
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const rawText = await response.text();
 
@@ -536,25 +753,22 @@ app.get("/api/orders/:id", (req, res) => {
 // =====================================================
 
 app.post("/api/orders", (req, res) => {
+  const validation = validateOrderInput(req.body);
+
+  if (!validation.valid) {
+    return res.status(400).json({
+      success: false,
+      message: validation.message
+    });
+  }
+
   const {
     customerName,
     customerEmail,
     service,
     price,
     description
-  } = req.body;
-
-  if (
-    !customerName ||
-    !customerEmail ||
-    !service
-  ) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "يرجى تعبئة اسم العميل والبريد الإلكتروني والخدمة"
-    });
-  }
+  } = validation.value;
 
   const orders = getOrders();
 
@@ -626,6 +840,21 @@ app.post(
         message: "الطلب غير موجود"
       });
     }
+
+    const ai = getAIConfig();
+
+    if (!ai.ready) {
+      return res.status(503).json({
+        success: false,
+        code: "AI_NOT_CONFIGURED",
+        message:
+          "خدمة الذكاء الاصطناعي غير مهيأة. يرجى إضافة OPENAI_API_KEY في بيئة الخادم"
+      });
+    }
+
+    const previousStatus = orders[index].status;
+    const previousAssignedEmployee =
+      orders[index].assignedEmployee;
 
     try {
       const order = orders[index];
@@ -703,7 +932,9 @@ app.post(
         "================================="
       );
 
-      orders[index].status = "new";
+      orders[index].status = previousStatus;
+      orders[index].assignedEmployee =
+        previousAssignedEmployee;
 
       orders[index].updatedAt =
         new Date().toISOString();
@@ -713,9 +944,7 @@ app.post(
       return res.status(500).json({
         success: false,
         message:
-          "فشل تنفيذ الطلب بواسطة AI",
-        error:
-          error.message
+          "تعذر تنفيذ الطلب حاليًا. تحقق من إعداد خدمة الذكاء الاصطناعي وحاول مرة أخرى."
       });
     }
   }
@@ -726,6 +955,7 @@ app.post(
 // =====================================================
 
 app.put("/api/orders/:id", (req, res) => {
+  const body = req.body || {};
   const orders = getOrders();
 
   const index = orders.findIndex(
@@ -743,48 +973,117 @@ app.put("/api/orders/:id", (req, res) => {
 
   const order = orders[index];
 
-  if (req.body.status !== undefined) {
-    const statuses = [
-      "new",
-      "processing",
-      "review",
-      "delivered",
-      "completed",
-      "cancelled"
-    ];
+  const orderInput = {};
 
-    if (statuses.includes(req.body.status)) {
-      order.status = req.body.status;
-    }
+  if (body.customerName !== undefined) {
+    orderInput.customerName = body.customerName;
   }
+
+  if (body.customerEmail !== undefined) {
+    orderInput.customerEmail = body.customerEmail;
+  }
+
+  if (body.service !== undefined) {
+    orderInput.service = body.service;
+  }
+
+  if (body.description !== undefined) {
+    orderInput.description = body.description;
+  }
+
+  if (body.price !== undefined) {
+    orderInput.price = body.price;
+  }
+
+  const orderValidation =
+    Object.keys(orderInput).length > 0
+      ? validateOrderInput(orderInput, { partial: true })
+      : { valid: true, value: {} };
+
+  if (!orderValidation.valid) {
+    return res.status(400).json({
+      success: false,
+      message: orderValidation.message
+    });
+  }
+
+  const statuses = [
+    "new",
+    "processing",
+    "review",
+    "delivered",
+    "completed",
+    "cancelled"
+  ];
 
   if (
-    req.body.paymentStatus !== undefined
+    body.status !== undefined &&
+    !statuses.includes(body.status)
   ) {
-    const payments = [
-      "unpaid",
-      "paid",
-      "pending",
-      "refunded"
-    ];
+    return res.status(400).json({
+      success: false,
+      message: "حالة الطلب غير صحيحة"
+    });
+  }
+
+  const payments = [
+    "unpaid",
+    "paid",
+    "pending",
+    "refunded"
+  ];
+
+  if (
+    body.paymentStatus !== undefined &&
+    !payments.includes(body.paymentStatus)
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "حالة الدفع غير صحيحة"
+    });
+  }
+
+  if (body.quality !== undefined) {
+    const quality = Number(body.quality);
 
     if (
-      payments.includes(
-        req.body.paymentStatus
-      )
+      !Number.isFinite(quality) ||
+      quality < 0 ||
+      quality > 100
     ) {
-      order.paymentStatus =
-        req.body.paymentStatus;
+      return res.status(400).json({
+        success: false,
+        message: "قيمة الجودة يجب أن تكون بين 0 و100"
+      });
     }
   }
 
-  if (req.body.quality !== undefined) {
-    let quality =
-      Number(req.body.quality);
+  let aiResultValidation;
 
-    if (Number.isNaN(quality)) {
-      quality = 0;
+  if (body.aiResult !== undefined) {
+    aiResultValidation =
+      validateAIResult(body.aiResult);
+
+    if (!aiResultValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: aiResultValidation.message
+      });
     }
+  }
+
+  Object.assign(order, orderValidation.value);
+
+  if (body.status !== undefined) {
+    order.status = body.status;
+  }
+
+  if (body.paymentStatus !== undefined) {
+    order.paymentStatus = body.paymentStatus;
+  }
+
+  if (body.quality !== undefined) {
+    const quality = Number(body.quality);
 
     order.quality =
       Math.max(
@@ -794,17 +1093,10 @@ app.put("/api/orders/:id", (req, res) => {
   }
 
   if (
-    req.body.description !== undefined
-  ) {
-    order.description =
-      String(req.body.description).trim();
-  }
-
-  if (
-    req.body.aiResult !== undefined
+    body.aiResult !== undefined
   ) {
     order.aiResult =
-      String(req.body.aiResult);
+      aiResultValidation.value;
   }
 
   order.updatedAt =
@@ -826,6 +1118,7 @@ app.put("/api/orders/:id", (req, res) => {
 app.patch(
   "/api/orders/:id/status",
   (req, res) => {
+    const body = req.body || {};
     const statuses = [
       "new",
       "processing",
@@ -837,7 +1130,7 @@ app.patch(
 
     if (
       !statuses.includes(
-        req.body.status
+        body.status
       )
     ) {
       return res.status(400).json({
@@ -862,7 +1155,7 @@ app.patch(
     }
 
     orders[index].status =
-      req.body.status;
+      body.status;
 
     orders[index].updatedAt =
       new Date().toISOString();
@@ -884,6 +1177,7 @@ app.patch(
 app.patch(
   "/api/orders/:id/payment",
   (req, res) => {
+    const body = req.body || {};
     const payments = [
       "unpaid",
       "paid",
@@ -893,7 +1187,7 @@ app.patch(
 
     if (
       !payments.includes(
-        req.body.paymentStatus
+        body.paymentStatus
       )
     ) {
       return res.status(400).json({
@@ -918,7 +1212,7 @@ app.patch(
     }
 
     orders[index].paymentStatus =
-      req.body.paymentStatus;
+      body.paymentStatus;
 
     orders[index].updatedAt =
       new Date().toISOString();
@@ -940,8 +1234,9 @@ app.patch(
 app.patch(
   "/api/orders/:id/quality",
   (req, res) => {
+    const body = req.body || {};
     let quality =
-      Number(req.body.quality);
+      Number(body.quality);
 
     if (Number.isNaN(quality)) {
       return res.status(400).json({
@@ -1080,9 +1375,7 @@ app.use(
     res.status(500).json({
       success: false,
       message:
-        "حدث خطأ داخلي في الخادم",
-      error:
-        error.message
+        "حدث خطأ داخلي في الخادم"
     });
   }
 );
@@ -1095,6 +1388,8 @@ app.listen(
   PORT,
   "0.0.0.0",
   () => {
+    const ai = getAIConfig();
+
     console.log(
       "================================="
     );
@@ -1108,15 +1403,11 @@ app.listen(
     );
 
     console.log(
-      `OPENAI CONFIGURED: ${Boolean(
-        process.env.OPENAI_API_KEY
-      )}`
+      `OPENAI CONFIGURED: ${ai.configured}`
     );
 
     console.log(
-      `OPENAI MODEL: ${
-        process.env.OPENAI_MODEL || "gpt-5-mini"
-      }`
+      `OPENAI MODEL: ${ai.model}`
     );
 
     console.log(
