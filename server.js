@@ -3,7 +3,6 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -60,16 +59,22 @@ const upload = multer({
 // DATABASE
 // =====================================================
 
-function getOrders() {
-  try {
-    const content = fs.readFileSync(ordersFile, "utf8");
-    const data = JSON.parse(content);
+function getAIConfig() {
+  const apiKey = String(
+    process.env.OPENAI_API_KEY || ""
+  ).trim();
 
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Error reading orders:", error);
-    return [];
-  }
+  const model = String(
+    process.env.OPENAI_MODEL || "gpt-5-mini"
+  ).trim();
+
+  return {
+    apiKey,
+    model,
+    configured: Boolean(apiKey),
+    ready: Boolean(apiKey && model)
+  };
+}
 }
 
 function saveOrders(orders) {
@@ -298,15 +303,16 @@ app.get("/api/health", (req, res) => {
 app.get("/api/ai/status", (req, res) => {
   const ai = getAIConfig();
 
-  res.json({
-    success: ai.ready,
+  res.status(200).json({
+    success: true,
     configured: ai.configured,
     ready: ai.ready,
+    connectionTested: false,
     provider: "OpenAI",
+    model: ai.model,
     message: ai.ready
-      ? "خدمة الذكاء الاصطناعي مهيأة"
-      : "خدمة الذكاء الاصطناعي غير مهيأة. يرجى إضافة OPENAI_API_KEY في بيئة الخادم",
-    model: ai.model
+      ? "إعدادات AI موجودة؛ لم يتم اختبار الاتصال الفعلي بعد"
+      : "أضف OPENAI_API_KEY في إعدادات Render"
   });
 });
 
